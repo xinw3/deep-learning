@@ -18,6 +18,7 @@ def q1_1():
     plt.ylabel("Error Rate")
     plt.plot(x_new,training_smooth, label='training error')
     plt.plot(x_new,test_smooth, label='test error')
+    plt.axvline(x=9, color='k', linestyle='--')
     # show legend
     plt.legend();
     plt.show()
