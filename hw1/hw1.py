@@ -62,8 +62,8 @@ def q5():
     # plt.xticks([])
     # plt.yticks([])
     # add x, y label to plot
-    plt.xlabel("Training Set Size")
-    plt.ylabel("Error Rate")
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.plot(x_new,tanh_smooth, label='tanh')
     plt.plot(x_new,sig_smooth, label='sigmoid')
     # show legend
