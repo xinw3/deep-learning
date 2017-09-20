@@ -7,20 +7,36 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 epochs = 200
-learning_rate = 0.1
+eta = 0.1   # learning rate
 
 # def a():
 
-# TODO: Initialize weights and biases
+# Initialize weights
+def init_weights(size_k_1, size_k):
 """
     Sample weights from uniform distribution
     as discussed in class.
+    Input:
+        size_k_1, size_k: sizes of layer k - 1 and k
+    Ouput:
+        matrix of initialized weights: size_k_1 * size_k
 """
+    b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
+    weights = np.random.uniform(-b, b, (size_k_1, size_k))
+    return weights
 
 # TODO: Feedforward
 
-# TODO: Calculate cross entropy
-# def cross_entropy():
+# Calculate cross entropy
+def cross_entropy(a, y):
+    """
+        Input:
+            a: output of the neural nets (vector, output of softmax function)
+            y: desired output (vector, 0s or 1s)
+        Output:
+            cross entropy of this training example
+    """
+    return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
 
 # TODO: Backpropagation
 
