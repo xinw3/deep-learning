@@ -6,8 +6,26 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
+epochs = 200
+learning_rate = 0.1
 
 # def a():
+
+# TODO: Initialize weights and biases
+"""
+    Sample weights from uniform distribution
+    as discussed in class.
+"""
+
+# TODO: Feedforward
+
+# TODO: Calculate cross entropy
+# def cross_entropy():
+
+# TODO: Backpropagation
+
+# TODO: Implement SGD
+
 
 
 def sigmoid(x):
@@ -16,6 +34,12 @@ def sigmoid(x):
         return 1/(1 + exp(-x))
     """
     return expit(x)
+
+def sigmoid_derivative(x):
+    """
+        Return the derivative of the sigmoid function
+    """
+    return sigmoid(x) * (1 - sigmoid(x))
 
 def softmax(x):
     """
@@ -61,6 +85,7 @@ def load_data(data_file):
 a = np.array([1, 2, 3])
 b = np.array([2, 3, 5, 6])
 print a
+print sigmoid(a)
 print softmax(a)
 print softmax(b)
 
