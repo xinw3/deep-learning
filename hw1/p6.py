@@ -2,18 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-training_set = "digitstrain.txt"
-validation_set = "digitsvalid.txt"
-test_set = "digitstest.txt"
+training_set = "./data/digitstrain.txt"
+validation_set = "./data/digitsvalid.txt"
+test_set = "./data/digitstest.txt"
 
-def a():
+# def a():
 
 
 def load_data(training_set, validation_set, test_set):
 
-    x_train, y_train = p.loadtxt(training_set, delimiter=',',  usecols=(0:783, 784))
+    #(3000, 784)
+    x_train = np.loadtxt(training_set, delimiter=',',  usecols=range(784))
+    # y_train = np.l
     # Visualization
-    print x_train.shape, y_train.shape
+    print x_train.shape
     # return x_train, y_train, x_validate, y_validate, x_test, y_test
 
 
