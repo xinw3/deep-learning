@@ -9,26 +9,26 @@ test_set = "./data/digitstest.txt"
 
 # def a():
 
-"""
-    Compute sigmoid function:
-    return 1/(1 + exp(-x))
-"""
+
 def sigmoid(x):
+    """
+        Compute sigmoid function:
+        return 1/(1 + exp(-x))
+    """
     return expit(x)
 
-"""
-    Input: an array
-    Output: an array of softmax function of each element
-"""
 def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum()
+    """
+        Input: an array
+        Output: an array of softmax function of each element
+    """
+    return np.exp(x) / float(sum(np.exp(x)))
 
-"""
-    Input: file to be converted
-    Output: x, y numpy array (float)
-"""
 def load_data(data_file):
+    """
+        Input: file to be converted
+        Output: x, y numpy array (float)
+    """
     data_array = np.loadtxt(data_file, delimiter=',')
     row = data_array.shape[0]
     col = data_array.shape[1]
@@ -58,8 +58,11 @@ def load_data(data_file):
 # plt.show()
 
 ''' Test functions'''
-a = np.array([[3.0, 1.0, 0.2]])
+a = np.array([1, 2, 3])
+b = np.array([2, 3, 5, 6])
+print a
 print softmax(a)
+print softmax(b)
 
 #Function chooser
 # func_arg = {"-a": a}
