@@ -17,6 +17,14 @@ def sigmoid(x):
     return expit(x)
 
 """
+    Input: an array
+    Output: an array of softmax function of each element
+"""
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+"""
     Input: file to be converted
     Output: x, y numpy array (float)
 """
@@ -34,20 +42,24 @@ def load_data(data_file):
 
 ''' Load Training Data'''
 # (3000, 785), (3000, 784), (3000, 1)
-x_train, y_train = load_data(training_set)
+# x_train, y_train = load_data(training_set)
 
 ''' Load Validation Data '''
 # (1000, 785), (1000, 784), (1000, 1)
-x_valid, y_valid = load_data(validation_set)
+# x_valid, y_valid = load_data(validation_set)
 
 ''' Load Test Data '''
 # (3000, 784), (3000, 1)
-x_test, y_test = load_data(test_set)
+# x_test, y_test = load_data(test_set)
 
+''' Visualization '''
 # plt.imshow(x_train[0, :])
-plt.imshow(x_test[0, :].reshape(28, 28), cmap='gray', origin='lower')
-plt.show()
+# plt.imshow(x_test[0, :].reshape(28, 28), cmap='gray', origin='lower')
+# plt.show()
 
+''' Test functions'''
+a = np.array([[3.0, 1.0, 0.2]])
+print softmax(a)
 
 #Function chooser
 # func_arg = {"-a": a}
