@@ -9,33 +9,25 @@ test_set = "./data/digitstest.txt"
 # def a():
 
 
-def load_data(training_set, validation_set, test_set):
+def load_data(data_file):
+    data_array = np.loadtxt(data_file, delimiter=',')
+    row = data_array.shape[0]
+    col = data_array.shape[1]
 
-    ''' Load Training Data'''
-    # (3000, 785)
-    training_data = np.loadtxt(training_set, delimiter=',')
-    train_row = training_data.shape[0]
-    train_col = training_data.shape[1]
-    # (3000, 784)
-    x_train = training_data[:,0:train_col - 1]
-    # (3000, 1)
-    y_train = training_data[:, train_col - 1].reshape(train_row, 1)
-
-    ''' Load Validation Data '''
-    validation_data = np.loadtxt(validation_set, delimiter=',')
-    valid_row = validation_data.shape[0]
-    valid_col = validation_data.shape[1]
-
-    x_valid = validation_data[:,0:valid_col - 1]
-    y_valid = validation_data[:, valid_col - 1].reshape(valid_row, 1)
-
-
+    x = data_array[:,0:col - 1]
+    y = data_array[:, col - 1].reshape(row, 1)
     # Visualization
-    print x_valid.shape, y_valid.shape
-    # return x_train, y_train, x_validate, y_validate, x_test, y_test
+    print "### Load Data File", data_file + " ###"
+    print x.shape, y.shape
+    return x, y
 
+''' Load Training Data'''
+# (3000, 785), (3000, 784), (3000, 1)
+x_train, y_train = load_data(training_set)
 
-load_data(training_set, validation_set, test_set)
+''' Load Validation Data '''
+# (1000, 785), (1000, 784), (1000, 1)
+x_valid, y_valid = load_data(validation_set)
 
 #Function chooser
 # func_arg = {"-a": a}
