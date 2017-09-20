@@ -1,12 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from scipy.special import expit
 
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 
 # def a():
+
+"""
+    Compute sigmoid function:
+    return 1/(1 + exp(-x))
+"""
+def sigmoid(x):
+    return expit(x)
 
 """
     Input: file to be converted
