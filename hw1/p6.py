@@ -30,16 +30,15 @@ x_train, y_train = load_data(training_set)
 
 ''' Load Validation Data '''
 # (1000, 785), (1000, 784), (1000, 1)
-# x_valid, y_valid = load_data(validation_set)
+x_valid, y_valid = load_data(validation_set)
 
 ''' Load Test Data '''
 # (3000, 784), (3000, 1)
-# x_test, y_test = load_data(test_set)
+x_test, y_test = load_data(test_set)
 
 # plt.imshow(x_train[0, :])
-for i in range(x_train.shape[0]):
-    plt.imshow(x_train[i, :].reshape(28, 28), cmap='gray', origin='lower')
-    plt.show()
+plt.imshow(x_test[0, :].reshape(28, 28), cmap='gray', origin='lower')
+plt.show()
 
 
 #Function chooser
