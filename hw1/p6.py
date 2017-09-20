@@ -1,26 +1,43 @@
+import sys
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.special import expit
 
+
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 epochs = 200
-eta = 0.1   # learning rate
+layer_size = {'1': 100, '2':10}
 
-# def a():
+def a():
+    """
+        Train the model
+    """
+    eta = 0.1   # learning rate
+    # Load Training Data (3000, 785)
+    # (3000, 784), (3000, 1)
+    x_train, y_train = load_data(training_set)
+    # Initialize weights(a dictionary holds all the weightss)
+    weights = {}
+    layer_size['0'] = x_train.shape[1]
+    weights['1'] = init_weights(layer_size['0'], layer_size['1'])
+    weights['2'] = init_weights(layer_size['1'], layer_size['2'])
+    print weights['1'].shape, weights['2'].shape
+
 
 # Initialize weights
 def init_weights(size_k_1, size_k):
-"""
-    Sample weights from uniform distribution
-    as discussed in class.
-    Input:
-        size_k_1, size_k: sizes of layer k - 1 and k
-    Ouput:
-        matrix of initialized weights: size_k_1 * size_k
-"""
+    """
+        Sample weights from uniform distribution
+        as discussed in class.
+        Input:
+            size_k_1, size_k: sizes of layer k - 1 and k
+        Ouput:
+            matrix of initialized weights: size_k_1 * size_k
+    """
     b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
     weights = np.random.uniform(-b, b, (size_k_1, size_k))
     return weights
@@ -80,9 +97,7 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-''' Load Training Data'''
-# (3000, 785), (3000, 784), (3000, 1)
-# x_train, y_train = load_data(training_set)
+
 
 ''' Load Validation Data '''
 # (1000, 785), (1000, 784), (1000, 1)
@@ -98,14 +113,14 @@ def load_data(data_file):
 # plt.show()
 
 ''' Test functions'''
-a = np.array([1, 2, 3])
-b = np.array([2, 3, 5, 6])
-print a
-print sigmoid(a)
-print softmax(a)
-print softmax(b)
+# a = np.array([1, 2, 3])
+# b = np.array([2, 3, 5, 6])
+# print a
+# print sigmoid(a)
+# print softmax(a)
+# print softmax(b)
 
-#Function chooser
-# func_arg = {"-a": a}
-# if __name__ == "__main__":
-#     func_arg[sys.argv[1]]()
+# Function chooser
+func_arg = {"-a": a}
+if __name__ == "__main__":
+    func_arg[sys.argv[1]]()
