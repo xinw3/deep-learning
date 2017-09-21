@@ -18,7 +18,7 @@ def a():
     """
         Train the model
     """
-    eta = 0.1   # learning rate
+    eta = 0.001   # learning rate
     # Load Training Data (3000, 785)
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
@@ -33,8 +33,8 @@ def a():
     # Run epochs times
     # One epoch
     # TODO: Add validation set, update biases
-    for e in range(epochs):
-        for i in range(batch_size):
+    for e in range(200):
+        for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
             y[int(y_train[i,0])] = 1
@@ -42,12 +42,13 @@ def a():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            loss += cross_entropy(o, y)
+            loss += cross_entropy(o, int(y_train[i,0]))
             # print "Before SGD: Loss %s" % loss
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
+            # print "#### loss_over_h1 = %s, loss_over_a1 = %s ####" % (loss_over_h1, loss_over_a1)
             b1_gradient = loss_over_a1
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
@@ -55,6 +56,7 @@ def a():
             w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
             b2_gradient = softmax_derivative(o, y)
             sgd(w2_gradient, b2_gradient, '2', eta)
+            # print "#### updated weights %s #######" % weights['1'][10, :]
 
 
         print "##### Epoch %s Loss %s" % (e + 1, loss / num_training_example)
@@ -62,8 +64,9 @@ def a():
 
 # TODO: Implement SGD
 def sgd(w_gradient, b_gradient, layer, eta):
-    weights[layer] += eta * w_gradient
-    biases[layer] += eta * b_gradient
+    # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
+    weights[layer] -= eta * w_gradient
+    biases[layer] -= eta * b_gradient
 
 # Feedforward
 def feedforward(W, x, b):
@@ -93,15 +96,15 @@ def init_params(size_k_1, size_k):
     return weights, biases
 
 # Calculate cross entropy
-def cross_entropy(a, y):
+def cross_entropy(o, y):
     """
         Input:
             a: output of the neural nets (vector, output of softmax function)
-            y: desired output (vector, 0s or 1s)
+            y: desired output (number)
         Output:
             cross entropy of this training example
     """
-    return np.sum(np.nan_to_num(-y * np.log(a) - (1-y) * np.log(1-a)))
+    return -np.log(o[y])
 
 def sigmoid(x):
     """
