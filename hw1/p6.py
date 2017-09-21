@@ -9,7 +9,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 200
+epochs = 10     # 200
 layer_size = {'1': 100, '2':10}
 weights = {}
 biases = {}
@@ -23,29 +23,62 @@ def a():
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
     num_training_example = x_train.shape[0]
-    # TODO: Uncomment this after test
-    # batch_size = num_training_example
-    batch_size = 10
+    batch_size = num_training_example
+    # batch_size = 10
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     biases = {'1': 0, '2': 0}
-    weights['1'] = init_weights(layer_size['0'], layer_size['1'])
-    weights['2'] = init_weights(layer_size['1'], layer_size['2'])
+    weights['1'] = init_weights(layer_size['0'], layer_size['1'])   # (784, 100)
+    weights['2'] = init_weights(layer_size['1'], layer_size['2'])   # (100, 10)
     # print weights['1'].shape, weights['2'].shape
     loss = 0    # Cross entropy loss
-    # TODO: Run epochs times
+    # Run epochs times
     # One epoch
-    for i in range(batch_size):
-        x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
-        y = np.zeros((layer_size['2'], 1))
-        y[int(y_train[i,0])] = 1
-        a1 = feedforward(weights['1'], x, biases['1'])
-        h = sigmoid(a1)  # Output of the hidden layer
-        a2 = feedforward(weights['2'], h, biases['2'])
-        o = softmax(a2)
-        loss += cross_entropy(o, y)
+    # TODO: Add validation set
+    for e in range(epochs):
+        for i in range(batch_size):
+            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            y[int(y_train[i,0])] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2'])
+            o = softmax(a2)
+            loss += cross_entropy(o, y)
+            print "Before SGD: Loss %s" % loss
+            # TODO: For each training example, do sgd, update parameters
+            w2_gradient = h1 * np.transpose(softmax_derivative(o, y))   # 100*10
+            sgd(w2_gradient, '2', eta)
 
-    print loss
+            w1_gradient = x * np.transpose(softmax_derivative(o, y)) * \
+                sigmoid_derivative(a1) * np.transpose(weights['2'])
+            print w1_gradient.shape
+            sgd(w1_gradient, '1', eta)
+            # backprop(a1, o, y, eta)
+            print "After SGD: Loss %s" % loss
+
+        print "##### Epoch %s Loss %s" % (e + 1, loss / num_training_example)
+
+    # print loss
+
+# TODO: Backpropagation
+# def backprop(a1, f, y, eta):
+#     w2_gradient = softmax_derivative(f, y)
+#     print w2_gradient.shape
+#     # update weights['2']
+#
+#     # update weights['1']
+#
+#     print w1_gradient.shape
+
+
+
+# TODO: Implement SGD
+def sgd(gradient, layer, eta):
+    weights[layer] += eta * gradient
+
+
+
 
 # Feedforward
 def feedforward(W, x, b):
@@ -81,13 +114,7 @@ def cross_entropy(a, y):
         Output:
             cross entropy of this training example
     """
-    return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
-
-# TODO: Backpropagation
-
-# TODO: Implement SGD
-
-
+    return np.sum(np.nan_to_num(-y * np.log(a) - (1-y) * np.log(1-a)))
 
 def sigmoid(x):
     """
@@ -108,6 +135,17 @@ def softmax(x):
         Output: an array of softmax function of each element
     """
     return np.exp(x) / float(sum(np.exp(x)))
+
+# Gradient of the softmax layer (output layer)
+def softmax_derivative(f, y):
+    """
+        Input:
+            f: output of the softmax layer
+            y: indicator function(desired output)
+        Output:
+            partial derivative of softmax layer
+    """
+    return -(y - f)
 
 def load_data(data_file):
     """
