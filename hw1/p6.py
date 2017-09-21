@@ -9,7 +9,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 10     # 200
+epochs = 200     # 200
 layer_size = {'1': 100, '2':10}
 weights = {}
 biases = {}
@@ -18,7 +18,7 @@ def a():
     """
         Train the model
     """
-    eta = 0.1   # learning rate
+    eta = 0.5   # learning rate
     # Load Training Data (3000, 785)
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
@@ -27,14 +27,13 @@ def a():
     # batch_size = 10
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
-    biases = {'1': 0, '2': 0}
-    weights['1'] = init_weights(layer_size['0'], layer_size['1'])   # (784, 100)
-    weights['2'] = init_weights(layer_size['1'], layer_size['2'])   # (100, 10)
-    # print weights['1'].shape, weights['2'].shape
+    weights['1'], biases['1'] = init_params(layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
+    weights['2'], biases['2'] = init_params(layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+    print biases['1'].shape, biases['2'].shape
     loss = 0    # Cross entropy loss
     # Run epochs times
     # One epoch
-    # TODO: Add validation set
+    # TODO: Add validation set, update biases
     for e in range(epochs):
         for i in range(batch_size):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
@@ -42,42 +41,33 @@ def a():
             y[int(y_train[i,0])] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
-            a2 = feedforward(weights['2'], h1, biases['2'])
-            o = softmax(a2)
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
             loss += cross_entropy(o, y)
-            print "Before SGD: Loss %s" % loss
-            # Update weights['2']
-            w2_gradient = np.dot(h1, np.transpose(softmax_derivative(o, y)))   # 100*10
-            sgd(w2_gradient, '2', eta)
+            # print "Before SGD: Loss %s" % loss
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
-            sgd(w1_gradient, '1', eta)
-            print "After SGD: Loss %s" % loss
+            b1_gradient = loss_over_a1
+            sgd(w1_gradient, b1_gradient, '1', eta)
+            # Update weights['2']
+            loss_over_a2 = np.transpose(softmax_derivative(o, y))
+            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
+            b2_gradient = softmax_derivative(o, y)
+            sgd(w2_gradient, b2_gradient, '2', eta)
+
 
         print "##### Epoch %s Loss %s" % (e + 1, loss / num_training_example)
 
-    # print loss
-
-# TODO: Backpropagation
-# def backprop(a1, f, y, eta):
-#     w2_gradient = softmax_derivative(f, y)
-#     print w2_gradient.shape
-#     # update weights['2']
-#
-#     # update weights['1']
-#
-#     print w1_gradient.shape
+    # print losss
 
 
 
 # TODO: Implement SGD
-def sgd(gradient, layer, eta):
-    weights[layer] += eta * gradient
-
-
-
+def sgd(w_gradient, b_gradient, layer, eta):
+    weights[layer] += eta * w_gradient
+    biases[layer] += eta * b_gradient
 
 # Feedforward
 def feedforward(W, x, b):
@@ -91,18 +81,20 @@ def feedforward(W, x, b):
     return b + np.dot(np.transpose(W), x)
 
 # Initialize weights
-def init_weights(size_k_1, size_k):
+def init_params(size_k_1, size_k):
     """
         Sample weights from uniform distribution
         as discussed in class.
         Input:
             size_k_1, size_k: sizes of layer k - 1 and k
         Ouput:
-            matrix of initialized weights: size_k_1 * size_k
+            weights: matrix of initialized weights: size_k_1 * size_k
+            biases: biases terms of size_k
     """
     b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
     weights = np.random.uniform(-b, b, (size_k_1, size_k))
-    return weights
+    biases = np.zeros((size_k, 1))
+    return weights, biases
 
 # Calculate cross entropy
 def cross_entropy(a, y):
