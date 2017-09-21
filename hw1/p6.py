@@ -18,7 +18,7 @@ def a():
     """
         Train the model
     """
-    eta = 0.5   # learning rate
+    eta = 0.1   # learning rate
     # Load Training Data (3000, 785)
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
@@ -29,7 +29,6 @@ def a():
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params(layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params(layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
-    print biases['1'].shape, biases['2'].shape
     loss = 0    # Cross entropy loss
     # Run epochs times
     # One epoch
@@ -59,9 +58,6 @@ def a():
 
 
         print "##### Epoch %s Loss %s" % (e + 1, loss / num_training_example)
-
-    # print losss
-
 
 
 # TODO: Implement SGD
@@ -125,7 +121,8 @@ def softmax(x):
         Input: an array
         Output: an array of softmax function of each element
     """
-    return np.exp(x) / float(sum(np.exp(x)))
+    x -= np.max(x)
+    return np.exp(x) / np.sum(np.exp(x))
 
 # Gradient of the softmax layer (output layer)
 def softmax_derivative(f, y):
