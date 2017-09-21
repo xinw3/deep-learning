@@ -11,6 +11,8 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 epochs = 200
 layer_size = {'1': 100, '2':10}
+weights = {}
+biases = {}
 
 def a():
     """
@@ -20,13 +22,41 @@ def a():
     # Load Training Data (3000, 785)
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
-    # Initialize weights(a dictionary holds all the weightss)
-    weights = {}
+    num_training_example = x_train.shape[0]
+    # TODO: Uncomment this after test
+    # batch_size = num_training_example
+    batch_size = 10
     layer_size['0'] = x_train.shape[1]
+    # Initialize weights(a dictionary holds all the weightss)
+    biases = {'1': 0, '2': 0}
     weights['1'] = init_weights(layer_size['0'], layer_size['1'])
     weights['2'] = init_weights(layer_size['1'], layer_size['2'])
-    print weights['1'].shape, weights['2'].shape
+    # print weights['1'].shape, weights['2'].shape
+    loss = 0    # Cross entropy loss
+    # TODO: Run epochs times
+    # One epoch
+    for i in range(batch_size):
+        x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+        y = np.zeros((layer_size['2'], 1))
+        y[int(y_train[i,0])] = 1
+        a1 = feedforward(weights['1'], x, biases['1'])
+        h = sigmoid(a1)  # Output of the hidden layer
+        a2 = feedforward(weights['2'], h, biases['2'])
+        o = softmax(a2)
+        loss += cross_entropy(o, y)
 
+    print loss
+
+# Feedforward
+def feedforward(W, x, b):
+    """
+        Input:
+            W: weight of this layer
+            x: neuron inputs
+        Output:
+            a = b + np.dot(W.T, x)
+    """
+    return b + np.dot(np.transpose(W), x)
 
 # Initialize weights
 def init_weights(size_k_1, size_k):
@@ -41,8 +71,6 @@ def init_weights(size_k_1, size_k):
     b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
     weights = np.random.uniform(-b, b, (size_k_1, size_k))
     return weights
-
-# TODO: Feedforward
 
 # Calculate cross entropy
 def cross_entropy(a, y):
