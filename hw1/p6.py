@@ -46,15 +46,14 @@ def a():
             o = softmax(a2)
             loss += cross_entropy(o, y)
             print "Before SGD: Loss %s" % loss
-            # TODO: For each training example, do sgd, update parameters
-            w2_gradient = h1 * np.transpose(softmax_derivative(o, y))   # 100*10
+            # Update weights['2']
+            w2_gradient = np.dot(h1, np.transpose(softmax_derivative(o, y)))   # 100*10
             sgd(w2_gradient, '2', eta)
-
-            w1_gradient = x * np.transpose(softmax_derivative(o, y)) * \
-                sigmoid_derivative(a1) * np.transpose(weights['2'])
-            print w1_gradient.shape
+            # Update weights['1']
+            loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
+            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
+            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
             sgd(w1_gradient, '1', eta)
-            # backprop(a1, o, y, eta)
             print "After SGD: Loss %s" % loss
 
         print "##### Epoch %s Loss %s" % (e + 1, loss / num_training_example)
