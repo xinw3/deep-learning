@@ -18,7 +18,7 @@ def a():
     """
         Train the model
     """
-    eta = 0.001   # learning rate
+    eta = 0.1   # learning rate
     # Load Training Data (3000, 785)
     # (3000, 784), (3000, 1)
     x_train, y_train = load_data(training_set)
@@ -27,13 +27,14 @@ def a():
     # batch_size = 10
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
-    weights['1'], biases['1'] = init_params(layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
-    weights['2'], biases['2'] = init_params(layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
-    loss = 0    # Cross entropy loss
+    weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
+    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+
     # Run epochs times
     # One epoch
     # TODO: Add validation set, update biases
     for e in range(200):
+        loss = 0    # Cross entropy loss
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
@@ -80,7 +81,7 @@ def feedforward(W, x, b):
     return b + np.dot(np.transpose(W), x)
 
 # Initialize weights
-def init_params(size_k_1, size_k):
+def init_params(layer, size_k_1, size_k):
     """
         Sample weights from uniform distribution
         as discussed in class.
