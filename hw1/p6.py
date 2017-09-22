@@ -9,7 +9,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 200     # 200
+epochs = 100     # 200
 layer_size = {'1': 100, '2':10}
 weights = {}
 biases = {}
@@ -23,18 +23,20 @@ def a():
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
-
+    # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
-
+    # Creat lists for containing the errors
+    training_error_list = []
+    valid_error_list = []
     # Run epochs times
     # One epoch
-    # TODO: Add validation set, update biases
-    for e in range(200):
+    # Add validation set, update biases
+    for e in range(epochs):
         training_error = 0      # training cross entropy
         valid_error = 0         # valid cross entropy
         ''' Training Part '''
@@ -47,12 +49,10 @@ def a():
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
             training_error += cross_entropy(o, y)
-            # print "Before SGD: Loss %s" % loss
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
-            # print "#### loss_over_h1 = %s, loss_over_a1 = %s ####" % (loss_over_h1, loss_over_a1)
             b1_gradient = loss_over_a1
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
@@ -60,7 +60,6 @@ def a():
             w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
             b2_gradient = softmax_derivative(o, y)
             sgd(w2_gradient, b2_gradient, '2', eta)
-            # print "#### updated weights %s #######" % weights['1'][10, :]
 
         ''' Validation Part '''
         for i in range(num_valid_example):
@@ -73,9 +72,21 @@ def a():
             o = softmax(a2)     # (10, 1)
             valid_error += cross_entropy(o, y)
 
-        print "##### Epoch %s training_error = %s, valid_error = %s" % \
-            (e + 1, training_error / num_training_example, valid_error / num_valid_example)
+        # Add the errors into lists
+        training_error_avg = training_error / num_training_example
+        valid_error_avg = valid_error / num_valid_example
 
+        training_error_list.append(training_error_avg)
+        valid_error_list.append(valid_error_avg)
+        print "##### Epoch %s training_error = %s, valid_error = %s" % \
+            (e + 1, training_error_avg, valid_error_avg)
+    # TODO: Plot the figures
+    plt.xlabel("# epochs")
+    plt.ylabel("error")
+    plt.plot(training_error_list, label='training error')
+    plt.plot(valid_error_list, label='valid error')
+    plt.legend()
+    plt.show()
 
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])

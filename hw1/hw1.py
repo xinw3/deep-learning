@@ -67,7 +67,7 @@ def q5():
     plt.plot(x_new,tanh_smooth, label='tanh')
     plt.plot(x_new,sig_smooth, label='sigmoid')
     # show legend
-    plt.legend();
+    plt.legend()
     plt.show()
 
 #Function chooser
