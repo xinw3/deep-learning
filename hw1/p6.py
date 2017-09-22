@@ -18,7 +18,7 @@ def a():
     """
         Train the model and get the training error and validation error
     """
-    eta = 0.1   # learning rate
+    eta = 0.5   # learning rate
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -43,12 +43,13 @@ def a():
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
-            y[int(y_train[i,0])] = 1
+            label = int(y_train[i,0])
+            y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            training_error += cross_entropy(o, y)
+            training_error += cross_entropy(o, label)
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
@@ -65,12 +66,13 @@ def a():
         for i in range(num_valid_example):
             x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
-            y[int(y_valid[i,0])] = 1
+            label = int(y_valid[i,0])
+            y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            valid_error += cross_entropy(o, y)
+            valid_error += cross_entropy(o, label)
 
         # Add the errors into lists
         training_error_avg = training_error / num_training_example
@@ -120,6 +122,11 @@ def init_params(layer, size_k_1, size_k):
     biases = np.zeros((size_k, 1))
     return weights, biases
 
+# TODO: Classification Error
+# def classification_error():
+
+
+
 # Calculate cross entropy
 def cross_entropy(o, y):
     """
@@ -129,7 +136,7 @@ def cross_entropy(o, y):
         Output:
             cross entropy of this example
     """
-    return np.sum(np.nan_to_num(-y * np.log(o) - (1-y) * np.log(1-o)))
+    return -np.log(o[y, 0])
 
 def sigmoid(x):
     """
