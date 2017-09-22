@@ -136,7 +136,7 @@ def cross_entropy(o, y):
         Output:
             cross entropy of this example
     """
-    return -np.log(o[y, 0])
+    return -np.log(o[y, 0] + np.power(10, -10))
 
 def sigmoid(x):
     """
