@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,20 +10,22 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 200     # 200
+epochs = 20     # 200
+eta = 0.1   # learning rate
 layer_size = {'1': 100, '2':10}
 weights = {}
+best_weights = {}
 biases = {}
 
 def a():
     """
         Train the model and get the training error and validation error
     """
-    eta = 0.1   # learning rate
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    min_valid_error = sys.maxint
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
@@ -81,6 +84,9 @@ def a():
         # Add the errors into lists
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
+        if valid_error_avg < min_valid_error:
+            min_valid_error = valid_error_avg
+            best_weights = deepcopy(weights)
 
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
@@ -98,7 +104,6 @@ def b():
     """
         Get the classification error
     """
-    eta = 0.1   # learning rate
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -117,8 +122,6 @@ def b():
     # One epoch
     # Add validation set, update biases
     for e in range(epochs):
-        training_error = 0      # training cross entropy
-        valid_error = 0         # valid cross entropy
         training_classify_error = 0     # training classification error
         valid_classify_error = 0        # valid classification error
         ''' Training Part '''
@@ -172,6 +175,23 @@ def b():
     plt.legend()
     plt.show()
 
+# TODO: Visualizing parameters
+def c():
+    ''' Visualization '''
+    a()
+    fig, axs = plt.subplots(10, 10, sharex=True)
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+    plt.xticks([])
+    plt.yticks([])
+    count = 1
+    for i in range(10):
+        for j in range(10):
+            plt.subplot(10, 10, count)
+            plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+            count += 1
+    plt.show()
+
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
     weights[layer] -= eta * w_gradient
@@ -204,7 +224,7 @@ def init_params(layer, size_k_1, size_k):
     biases = np.zeros((size_k, 1))
     return weights, biases
 
-# TODO: Classification Error
+# Classification Error
 def classification_error(o, label):
     """
         If it is classified incorrectly, return 1.
@@ -289,10 +309,7 @@ def load_data(data_file):
 # (3000, 784), (3000, 1)
 # x_test, y_test = load_data(test_set)
 
-''' Visualization '''
-# plt.imshow(x_train[0, :])
-# plt.imshow(x_test[0, :].reshape(28, 28), cmap='gray', origin='lower')
-# plt.show()
+
 
 ''' Test functions'''
 # a = np.array([1, 2, 3])
@@ -303,6 +320,6 @@ def load_data(data_file):
 # print softmax(b)
 
 # Function chooser
-func_arg = {"-a": a, "-b": b}
+func_arg = {"-a": a, "-b": b, "-c": c}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
