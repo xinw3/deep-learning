@@ -86,7 +86,7 @@ def a():
         valid_error_list.append(valid_error_avg)
         print "##### Epoch %s training_error = %s, valid_error = %s" % \
             (e + 1, training_error_avg, valid_error_avg)
-    # TODO: Plot the figures
+    # Plot the figures
     plt.xlabel("# epochs")
     plt.ylabel("error")
     plt.plot(training_error_list, label='training error')
@@ -157,16 +157,16 @@ def b():
             valid_classify_error += classification_error(o, label)
 
         # Add the errors into lists
-        training_error_avg = float(training_classify_error) / num_training_example
-        valid_error_avg = float(valid_classify_error) / num_valid_example
+        training_error_avg = float(training_classify_error) / num_training_example * 100
+        valid_error_avg = float(valid_classify_error) / num_valid_example * 100
 
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
-        print "##### Epoch %s training_classify_error = %s, valid_classify_error = %s" % \
+        print "##### Epoch %s training_classify_error = %s %%, valid_classify_error = %s %%" % \
             (e + 1, training_error_avg, valid_error_avg)
-    # TODO: Plot the figures
+    # Plot the figures
     plt.xlabel("# epochs")
-    plt.ylabel("error")
+    plt.ylabel("error(%)")
     plt.plot(training_error_list, label='training classification error')
     plt.plot(valid_error_list, label='valid classification error')
     plt.legend()
