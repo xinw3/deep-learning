@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 epochs = 200     # 200
-eta = 0.1   # learning rate
+eta = 0.5   # learning rate
 layer_size = {'1': 100, '2':10}
 weights = {}
 best_weights = {}
@@ -87,6 +87,8 @@ def a():
         if valid_error_avg < min_valid_error:
             min_valid_error = valid_error_avg
             best_weights = deepcopy(weights)
+        elif sys.argv[1] == '-c':
+            break
 
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
@@ -98,6 +100,7 @@ def a():
         plt.ylabel("error")
         plt.plot(training_error_list, label='training error')
         plt.plot(valid_error_list, label='valid error')
+        plt.title('learning rate = %s' % eta)
         plt.legend()
         plt.show()
     elif sys.argv[1] == '-c':
@@ -182,9 +185,9 @@ def b():
 def c():
     ''' Visualization '''
     best_weights = a()
-    fig, axs = plt.subplots(10, 10, sharex=True)
+    fig, axs = plt.subplots(10, 10)
     # Remove horizontal space between axes
-    fig.subplots_adjust(hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0)
     count = 1
     for i in range(10):
         for j in range(10):
