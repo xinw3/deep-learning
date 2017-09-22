@@ -9,7 +9,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 100     # 200
+epochs = 200     # 200
 layer_size = {'1': 100, '2':10}
 weights = {}
 biases = {}
@@ -63,7 +63,7 @@ def a():
 
         ''' Validation Part '''
         for i in range(num_valid_example):
-            x = x_valid[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
             y[int(y_valid[i,0])] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -169,13 +169,14 @@ def load_data(data_file):
         Output: x, y numpy array (float)
     """
     data_array = np.loadtxt(data_file, delimiter=',')
+    np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
 
     x = data_array[:,0:col - 1]
     y = data_array[:, col - 1].reshape(row, 1)
     # Test
-    print "### Load Data File", data_file + " ###"
+    print "### Load Data File %s ###" % data_file
     print x.shape, y.shape
     return x, y
 
