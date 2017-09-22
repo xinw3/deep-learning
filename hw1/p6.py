@@ -100,7 +100,7 @@ def a():
         plt.ylabel("error")
         plt.plot(training_error_list, label='training error')
         plt.plot(valid_error_list, label='valid error')
-        plt.title('learning rate = %s' % eta)
+        plt.title('Cross Entropy (learning rate = %s)' % eta)
         plt.legend()
         plt.show()
     elif sys.argv[1] == '-c':
@@ -178,6 +178,7 @@ def b():
     plt.ylabel("error(%)")
     plt.plot(training_error_list, label='training classification error')
     plt.plot(valid_error_list, label='valid classification error')
+    plt.title('Classification Error (learning rate = %s)' % eta)
     plt.legend()
     plt.show()
 
