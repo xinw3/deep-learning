@@ -10,7 +10,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 20     # 200
+epochs = 200     # 200
 eta = 0.1   # learning rate
 layer_size = {'1': 100, '2':10}
 weights = {}
@@ -93,12 +93,15 @@ def a():
         print "##### Epoch %s training_error = %s, valid_error = %s" % \
             (e + 1, training_error_avg, valid_error_avg)
     # Plot the figures
-    plt.xlabel("# epochs")
-    plt.ylabel("error")
-    plt.plot(training_error_list, label='training error')
-    plt.plot(valid_error_list, label='valid error')
-    plt.legend()
-    plt.show()
+    if sys.argv[1] == '-a':
+        plt.xlabel("# epochs")
+        plt.ylabel("error")
+        plt.plot(training_error_list, label='training error')
+        plt.plot(valid_error_list, label='valid error')
+        plt.legend()
+        plt.show()
+    elif sys.argv[1] == '-c':
+        return best_weights
 
 def b():
     """
@@ -178,16 +181,16 @@ def b():
 # TODO: Visualizing parameters
 def c():
     ''' Visualization '''
-    a()
+    best_weights = a()
     fig, axs = plt.subplots(10, 10, sharex=True)
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
-    plt.xticks([])
-    plt.yticks([])
     count = 1
     for i in range(10):
         for j in range(10):
             plt.subplot(10, 10, count)
+            plt.xticks([])
+            plt.yticks([])
             plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
             count += 1
     plt.show()
@@ -300,9 +303,6 @@ def load_data(data_file):
     print "### Load Data File %s ###" % data_file
     print x.shape, y.shape
     return x, y
-
-
-
 
 
 ''' Load Test Data '''
