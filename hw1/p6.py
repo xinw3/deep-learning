@@ -50,16 +50,12 @@ def a():
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
             label = int(y_train[i,0])
-            # NOTE: Group to one function
-            
-
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
             training_error += cross_entropy(o, y)
-            training_classify_error += classification_error(o, label)
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
@@ -83,7 +79,6 @@ def a():
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
             valid_error += cross_entropy(o, y)
-            valid_classify_error += classification_error(o, label)
 
         # Add the errors into lists
         training_error_avg = training_error / num_training_example
