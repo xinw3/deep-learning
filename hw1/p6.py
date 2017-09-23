@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 5     # 200
+epochs = 40     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
