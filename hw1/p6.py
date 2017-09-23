@@ -69,7 +69,7 @@ def a():
             # b1 gradient, no bias decay
             b1_curr_gradient = loss_over_a1
             b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
-                                    momentum, 0, bias['1'])
+                                    momentum, 0, biases['1'])
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
@@ -80,7 +80,7 @@ def a():
             # b2 gradient
             b2_curr_gradient = softmax_derivative(o, y)
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
-                                    momentum, 0, bias['2'])
+                                    momentum, 0, biases['2'])
 
             sgd(w2_gradient, b2_gradient, '2', eta)
             # update gradient parameters
@@ -176,7 +176,7 @@ def b():
             # b1 gradient
             b1_curr_gradient = loss_over_a1
             b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
-                                    momentum, 0, bias['1'])
+                                    momentum, 0, biases['1'])
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
@@ -187,7 +187,7 @@ def b():
             # b2 gradient
             b2_curr_gradient = softmax_derivative(o, y)
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
-                                    momentum, 0, bias['2'])
+                                    momentum, 0, biases['2'])
 
             sgd(w2_gradient, b2_gradient, '2', eta)
             # update gradient parameters
