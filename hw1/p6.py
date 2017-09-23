@@ -12,6 +12,7 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 epochs = 200     # 200
 eta = 0.5   # learning rate
+momentum = 0.5
 layer_size = {'1': 100, '2':10}
 weights = {}
 best_weights = {}
@@ -204,6 +205,9 @@ def sgd(w_gradient, b_gradient, layer, eta):
     weights[layer] -= eta * w_gradient
     biases[layer] -= eta * b_gradient
 
+# TODO: Compute gradient
+def gradient(momentum):
+    
 # Feedforward
 def feedforward(W, x, b):
     """
