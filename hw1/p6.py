@@ -10,8 +10,8 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 200     # 200
-eta = 0.5   # learning rate
+epochs = 10     # 200
+eta = 0.1   # learning rate
 momentum = 0.5
 layer_size = {'1': 100, '2':10}
 weights = {}
@@ -34,12 +34,14 @@ def a():
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+    w1_prev_gradient = np.zeros(weights['1'].shape)
+    w2_prev_gradient = np.zeros(weights['2'].shape)
+    b1_prev_gradient = np.zeros(biases['1'].shape)
+    b2_prev_gradient = np.zeros(biases['2'].shape)
     # Creat lists for containing the errors
     training_error_list = []
     valid_error_list = []
     # Run epochs times
-    # One epoch
-    # Add validation set, update biases
     for e in range(epochs):
         training_error = 0      # training cross entropy
         valid_error = 0         # valid cross entropy
@@ -59,14 +61,34 @@ def a():
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
-            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
-            b1_gradient = loss_over_a1
+            # w1 gradient
+            w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
+            w1_gradient = get_gradient_with_momentum(\
+                    w1_curr_gradient, w1_prev_gradient, momentum)
+            # b1 gradient
+            b1_curr_gradient = loss_over_a1
+            b1_gradient = get_gradient_with_momentum(\
+                    b1_curr_gradient, b1_prev_gradient, momentum)
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
-            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
-            b2_gradient = softmax_derivative(o, y)
+            # w2 gradient
+            w2_curr_gradient = np.dot(h1, loss_over_a2)   # 100*10
+            w2_gradient = get_gradient_with_momentum(\
+                    w2_curr_gradient, w2_prev_gradient, momentum)
+            # b2 gradient
+            b2_curr_gradient = softmax_derivative(o, y)
+            b2_gradient = get_gradient_with_momentum(\
+                    b2_curr_gradient, b2_prev_gradient, momentum)
+
             sgd(w2_gradient, b2_gradient, '2', eta)
+            # update gradient parameters
+            w1_prev_gradient = w1_gradient
+            b1_prev_gradient = b1_gradient
+
+            w2_prev_gradient = w2_gradient
+            b2_prev_gradient = b2_gradient
+
 
         ''' Validation Part '''
         for i in range(num_valid_example):
@@ -99,7 +121,7 @@ def a():
         plt.ylabel("error")
         plt.plot(training_error_list, label='training error')
         plt.plot(valid_error_list, label='valid error')
-        plt.title('Cross Entropy (learning rate = %s)' % eta)
+        plt.title('Cross Entropy (learning rate = %s, momentum = %s)' % (eta, momentum))
         plt.legend()
         plt.show()
     elif sys.argv[1] == '-c':
@@ -203,8 +225,9 @@ def sgd(w_gradient, b_gradient, layer, eta):
     weights[layer] -= eta * w_gradient
     biases[layer] -= eta * b_gradient
 
-# TODO: Compute gradient
-def gradient(momentum):
+# Compute gradient
+def get_gradient_with_momentum(curr, prev, momentum):
+    return curr + momentum * prev
 
 # Feedforward
 def feedforward(W, x, b):
