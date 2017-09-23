@@ -10,10 +10,10 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 20     # 200
+epochs = 40     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
-layer_size = {'1': 100, '2':10}
+layer_size = {'1': 200, '2':10}
 weights = {}
 best_weights = {}
 biases = {}
@@ -219,7 +219,8 @@ def b():
     plt.ylabel("error(%)")
     plt.plot(training_error_list, label='training classification error')
     plt.plot(valid_error_list, label='valid classification error')
-    plt.title('Classification Error (learning rate = %s)' % eta)
+    plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
+            % (eta, momentum, layer_size['1']))
     plt.legend()
     plt.show()
 
