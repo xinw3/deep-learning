@@ -6,14 +6,17 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.special import expit
 
-
+# Data sets
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 40     # 200
-eta = 0.01   # learning rate
+# Tunable parameters
+epochs = 100     # 200
+eta = 0.1   # learning rate
 momentum = 0.5
-layer_size = {'1': 200, '2':10}
+reg_lambda = 0.01 # regularization strength
+layer_size = {'1': 100, '2':10}     # number of hidden units
+# Parameter dictionaries
 weights = {}
 best_weights = {}
 biases = {}
@@ -59,25 +62,25 @@ def a():
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
-            # w1 gradient
+            # w1 gradient, weight decay
             w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
-            w1_gradient = get_gradient_with_momentum(\
-                    w1_curr_gradient, w1_prev_gradient, momentum)
-            # b1 gradient
+            w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
+                                    momentum, reg_lambda, weights['1'])
+            # b1 gradient, no bias decay
             b1_curr_gradient = loss_over_a1
-            b1_gradient = get_gradient_with_momentum(\
-                    b1_curr_gradient, b1_prev_gradient, momentum)
+            b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
+                                    momentum, 0, bias['1'])
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
             # w2 gradient
             w2_curr_gradient = np.dot(h1, loss_over_a2)   # 100*10
-            w2_gradient = get_gradient_with_momentum(\
-                    w2_curr_gradient, w2_prev_gradient, momentum)
+            w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient,\
+                                    momentum, reg_lambda, weights['2'])
             # b2 gradient
             b2_curr_gradient = softmax_derivative(o, y)
-            b2_gradient = get_gradient_with_momentum(\
-                    b2_curr_gradient, b2_prev_gradient, momentum)
+            b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
+                                    momentum, 0, bias['2'])
 
             sgd(w2_gradient, b2_gradient, '2', eta)
             # update gradient parameters
@@ -168,23 +171,23 @@ def b():
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             # w1 gradient
             w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
-            w1_gradient = get_gradient_with_momentum(\
-                    w1_curr_gradient, w1_prev_gradient, momentum)
+            w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
+                                    momentum, reg_lambda, weights['1'])
             # b1 gradient
             b1_curr_gradient = loss_over_a1
-            b1_gradient = get_gradient_with_momentum(\
-                    b1_curr_gradient, b1_prev_gradient, momentum)
+            b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
+                                    momentum, 0, bias['1'])
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
             # w2 gradient
             w2_curr_gradient = np.dot(h1, loss_over_a2)   # 100*10
-            w2_gradient = get_gradient_with_momentum(\
-                    w2_curr_gradient, w2_prev_gradient, momentum)
+            w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient,\
+                                    momentum, reg_lambda, weights['2'])
             # b2 gradient
             b2_curr_gradient = softmax_derivative(o, y)
-            b2_gradient = get_gradient_with_momentum(\
-                    b2_curr_gradient, b2_prev_gradient, momentum)
+            b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
+                                    momentum, 0, bias['2'])
 
             sgd(w2_gradient, b2_gradient, '2', eta)
             # update gradient parameters
@@ -247,8 +250,8 @@ def sgd(w_gradient, b_gradient, layer, eta):
     biases[layer] -= eta * b_gradient
 
 # Compute gradient
-def get_gradient_with_momentum(curr, prev, momentum):
-    return curr + momentum * prev
+def get_gradient(curr_gradient, prev_gradient, momentum, decay_factor, weights):
+    return curr_gradient + momentum * prev_gradient + decay_factor * weights
 
 # Feedforward
 def feedforward(W, x, b):
