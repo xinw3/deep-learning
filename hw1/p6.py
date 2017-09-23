@@ -10,7 +10,7 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 100     # 200
+epochs = 20     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
 layer_size = {'1': 100, '2':10}
@@ -45,8 +45,6 @@ def a():
     for e in range(epochs):
         training_error = 0      # training cross entropy
         valid_error = 0         # valid cross entropy
-        training_classify_error = 0     # training classification error
-        valid_classify_error = 0        # valid classification error
         ''' Training Part '''
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
@@ -168,14 +166,33 @@ def b():
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
-            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
-            b1_gradient = loss_over_a1
+            # w1 gradient
+            w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
+            w1_gradient = get_gradient_with_momentum(\
+                    w1_curr_gradient, w1_prev_gradient, momentum)
+            # b1 gradient
+            b1_curr_gradient = loss_over_a1
+            b1_gradient = get_gradient_with_momentum(\
+                    b1_curr_gradient, b1_prev_gradient, momentum)
             sgd(w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
-            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
-            b2_gradient = softmax_derivative(o, y)
+            # w2 gradient
+            w2_curr_gradient = np.dot(h1, loss_over_a2)   # 100*10
+            w2_gradient = get_gradient_with_momentum(\
+                    w2_curr_gradient, w2_prev_gradient, momentum)
+            # b2 gradient
+            b2_curr_gradient = softmax_derivative(o, y)
+            b2_gradient = get_gradient_with_momentum(\
+                    b2_curr_gradient, b2_prev_gradient, momentum)
+
             sgd(w2_gradient, b2_gradient, '2', eta)
+            # update gradient parameters
+            w1_prev_gradient = w1_gradient
+            b1_prev_gradient = b1_gradient
+
+            w2_prev_gradient = w2_gradient
+            b2_prev_gradient = b2_gradient
 
         ''' Validation Part '''
         for i in range(num_valid_example):
