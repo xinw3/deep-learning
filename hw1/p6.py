@@ -50,6 +50,9 @@ def a():
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
             label = int(y_train[i,0])
+            # NOTE: Group to one function
+            
+
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
@@ -207,7 +210,7 @@ def sgd(w_gradient, b_gradient, layer, eta):
 
 # TODO: Compute gradient
 def gradient(momentum):
-    
+
 # Feedforward
 def feedforward(W, x, b):
     """
