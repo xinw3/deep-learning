@@ -10,8 +10,8 @@ from scipy.special import expit
 training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
-epochs = 10     # 200
-eta = 0.1   # learning rate
+epochs = 100     # 200
+eta = 0.01   # learning rate
 momentum = 0.5
 layer_size = {'1': 100, '2':10}
 weights = {}
@@ -121,7 +121,8 @@ def a():
         plt.ylabel("error")
         plt.plot(training_error_list, label='training error')
         plt.plot(valid_error_list, label='valid error')
-        plt.title('Cross Entropy (learning rate = %s, momentum = %s)' % (eta, momentum))
+        plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
+                % (eta, momentum, layer_size['1']))
         plt.legend()
         plt.show()
     elif sys.argv[1] == '-c':
@@ -142,12 +143,14 @@ def b():
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+    w1_prev_gradient = np.zeros(weights['1'].shape)
+    w2_prev_gradient = np.zeros(weights['2'].shape)
+    b1_prev_gradient = np.zeros(biases['1'].shape)
+    b2_prev_gradient = np.zeros(biases['2'].shape)
     # Creat lists for containing the errors
     training_error_list = []
     valid_error_list = []
     # Run epochs times
-    # One epoch
-    # Add validation set, update biases
     for e in range(epochs):
         training_classify_error = 0     # training classification error
         valid_classify_error = 0        # valid classification error
@@ -203,7 +206,7 @@ def b():
     plt.legend()
     plt.show()
 
-# TODO: Visualizing parameters
+# Visualizing parameters
 def c():
     ''' Visualization '''
     best_weights = a()
