@@ -11,8 +11,8 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 200     # 200
-eta = 0.2   # learning rate
+epochs = 5     # 200
+eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2':10}     # number of hidden units
@@ -23,16 +23,21 @@ biases = {}
 
 def a():
     """
-        Train the model and get the training error and validation error
+        Train the model
+        get the training error, validation error and test error
     """
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Load Test Data (3000, 785)
+    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
     min_valid_error = sys.maxint
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
+    num_test_example = x_test.shape[0]
+
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
@@ -44,11 +49,13 @@ def a():
     # Creat lists for containing the errors
     training_error_list = []
     valid_error_list = []
+    test_error_list = []
     # Run epochs times
     for e in range(epochs):
         training_error = 0      # training cross entropy
         valid_error = 0         # valid cross entropy
-        ''' Training Part '''
+        test_error = 0          # test error
+        ''' Training '''
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
@@ -90,8 +97,7 @@ def a():
             w2_prev_gradient = w2_gradient
             b2_prev_gradient = b2_gradient
 
-
-        ''' Validation Part '''
+        ''' Validation '''
         for i in range(num_valid_example):
             x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
@@ -103,27 +109,43 @@ def a():
             o = softmax(a2)     # (10, 1)
             valid_error += cross_entropy(o, y)
 
-        # Add the errors into lists
+        ''' Test '''
+        for i in range(num_test_example):
+            x = x_test[i, :].reshape(len(x_test[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_test[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            test_error += cross_entropy(o, y)
+
+        # Add regularizer
         training_error_avg = training_error / num_training_example
         training_error_avg = get_l2_loss(training_error_avg, weights, reg_lambda)
+
         valid_error_avg = valid_error / num_valid_example
-        training_error_avg = get_l2_loss(valid_error_avg, weights, reg_lambda)
+        test_error_avg = test_error / num_test_example
+
         if valid_error_avg < min_valid_error:
             min_valid_error = valid_error_avg
             best_weights = deepcopy(weights)
-        elif sys.argv[1] == '-c':
-            break
+        # elif sys.argv[1] == '-c':
+        #     break
 
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
-        print "##### Epoch %s training_error = %s, valid_error = %s" % \
-            (e + 1, training_error_avg, valid_error_avg)
+        test_error_list.append(test_error_avg)
+        print "##### Epoch %s training_error = %s, valid_error = %s, test_error = %s" % \
+            (e + 1, training_error_avg, valid_error_avg, test_error_avg)
     # Plot the figures
     if sys.argv[1] == '-a':
         plt.xlabel("# epochs")
         plt.ylabel("error")
         plt.plot(training_error_list, label='training error')
         plt.plot(valid_error_list, label='valid error')
+        plt.plot(test_error_list, label='test error')
         plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
                 % (eta, momentum, layer_size['1']))
         plt.legend()
@@ -139,9 +161,13 @@ def b():
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Load Test Data (3000, 785)
+    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
+    num_test_example = x_test.shape[0]
+
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
@@ -153,11 +179,13 @@ def b():
     # Creat lists for containing the errors
     training_error_list = []
     valid_error_list = []
+    test_error_list = []
     # Run epochs times
     for e in range(epochs):
         training_classify_error = 0     # training classification error
         valid_classify_error = 0        # valid classification error
-        ''' Training Part '''
+        test_classify_error = 0          # test classification error
+        ''' Training '''
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
@@ -199,7 +227,7 @@ def b():
             w2_prev_gradient = w2_gradient
             b2_prev_gradient = b2_gradient
 
-        ''' Validation Part '''
+        ''' Validation '''
         for i in range(num_valid_example):
             x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
             y = np.zeros((layer_size['2'], 1))
@@ -211,19 +239,34 @@ def b():
             o = softmax(a2)     # (10, 1)
             valid_classify_error += classification_error(o, label)
 
+        ''' Test '''
+        for i in range(num_test_example):
+            x = x_test[i, :].reshape(len(x_test[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_test[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            test_classify_error += classification_error(o, label)
+
         # Add the errors into lists
         training_error_avg = float(training_classify_error) / num_training_example * 100
         valid_error_avg = float(valid_classify_error) / num_valid_example * 100
+        test_error_avg = float(test_classify_error) / num_test_example * 100
 
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
-        print "##### Epoch %s training_classify_error = %s %%, valid_classify_error = %s %%" % \
-            (e + 1, training_error_avg, valid_error_avg)
+        test_error_list.append(test_error_avg)
+        print "##### Epoch %s training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%%" % \
+            (e + 1, training_error_avg, valid_error_avg, test_error_avg)
     # Plot the figures
     plt.xlabel("# epochs")
     plt.ylabel("error(%)")
     plt.plot(training_error_list, label='training classification error')
     plt.plot(valid_error_list, label='valid classification error')
+    plt.plot(test_error_list, label='test classification error')
     plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
             % (eta, momentum, layer_size['1']))
     plt.legend()
@@ -363,12 +406,6 @@ def load_data(data_file):
     print "### Load Data File %s ###" % data_file
     print x.shape, y.shape
     return x, y
-
-
-''' Load Test Data '''
-# (3000, 784), (3000, 1)
-# x_test, y_test = load_data(test_set)
-
 
 
 ''' Test functions'''
