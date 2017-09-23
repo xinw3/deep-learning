@@ -11,10 +11,10 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 100     # 200
+epochs = 400     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
-reg_lambda = 0.01 # regularization strength
+reg_lambda = 0.1 # regularization strength
 layer_size = {'1': 100, '2':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
@@ -58,7 +58,7 @@ def a():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            training_error += cross_entropy(o, y)
+            training_error += get_l2_loss(o, y, weights, reg_lambda)
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
@@ -101,7 +101,7 @@ def a():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            valid_error += cross_entropy(o, y)
+            valid_error += get_l2_loss(o, y, weights, reg_lambda)
 
         # Add the errors into lists
         training_error_avg = training_error / num_training_example
@@ -307,6 +307,11 @@ def cross_entropy(o, y):
     """
     bias = np.power(10, -10)
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
+
+# loss function with regularization factor
+def get_l2_loss(o, y, weights, reg_lambda):
+    return cross_entropy(o, y) + \
+        reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
 
 def sigmoid(x):
     """
