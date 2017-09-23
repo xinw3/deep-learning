@@ -11,10 +11,10 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 400     # 200
-eta = 0.1   # learning rate
+epochs = 200     # 200
+eta = 0.2   # learning rate
 momentum = 0.5
-reg_lambda = 0.1 # regularization strength
+reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
@@ -58,7 +58,7 @@ def a():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            training_error += get_l2_loss(o, y, weights, reg_lambda)
+            training_error += cross_entropy(o, y)
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
@@ -101,11 +101,13 @@ def a():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
-            valid_error += get_l2_loss(o, y, weights, reg_lambda)
+            valid_error += cross_entropy(o, y)
 
         # Add the errors into lists
         training_error_avg = training_error / num_training_example
+        training_error_avg = get_l2_loss(training_error_avg, weights, reg_lambda)
         valid_error_avg = valid_error / num_valid_example
+        training_error_avg = get_l2_loss(valid_error_avg, weights, reg_lambda)
         if valid_error_avg < min_valid_error:
             min_valid_error = valid_error_avg
             best_weights = deepcopy(weights)
@@ -309,8 +311,8 @@ def cross_entropy(o, y):
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
 
 # loss function with regularization factor
-def get_l2_loss(o, y, weights, reg_lambda):
-    return cross_entropy(o, y) + \
+def get_l2_loss(avg_loss, weights, reg_lambda):
+    return avg_loss + \
         reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
 
 def sigmoid(x):
