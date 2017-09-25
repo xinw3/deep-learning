@@ -14,8 +14,8 @@ test_set = "./data/digitstest.txt"
 epochs = 200     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
-reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
+reg_lambda = 0 # regularization strength
+layer_size = {'1': 10, '2': 10, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -459,8 +459,8 @@ def g():
         test_classify_error_list.append(test_classify_error_avg)
 
         print "##### Epoch %s training_error = %s, valid_error = %s, test_error = %s\n \
-        training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
-                " % (e + 1, training_error_avg, valid_error_avg, test_error_avg, \
+training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
+               #####" % (e + 1, training_error_avg, valid_error_avg, test_error_avg, \
                     training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
 
     ''' Visualization '''
