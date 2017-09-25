@@ -11,10 +11,10 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 100     # 200
-eta = 0.01   # learning rate
+epochs = 400     # 200
+eta = 0.001   # learning rate
 momentum = 0.5
-reg_lambda = 0 # regularization strength
+reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
@@ -479,9 +479,9 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
     plt.figure(2)
     plt.xlabel("# epochs")
     plt.ylabel("error(%)")
-    plt.plot(training_error_list, label='training classification error')
-    plt.plot(valid_error_list, label='valid classification error')
-    plt.plot(test_error_list, label='test classification error')
+    plt.plot(training_classify_error_list, label='training classification error')
+    plt.plot(valid_classify_error_list, label='valid classification error')
+    plt.plot(test_classify_error_list, label='test classification error')
     plt.title('Classification Error (learning rate = %s, momentum = %s, hidden 1 = %s, hidden 2 = %s)'\
             % (eta, momentum, layer_size['1'], layer_size['2']))
     plt.legend()
