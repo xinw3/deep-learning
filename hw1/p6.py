@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 40     # 200
+epochs = 200     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
@@ -377,7 +377,7 @@ def g():
             b2_curr_gradient = loss_over_a2
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
                                     momentum, 0, biases['2'])
-            sgd(w1_gradient, b1_gradient, '2', eta)
+            sgd(w2_gradient, b2_gradient, '2', eta)
 
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 1)
@@ -460,47 +460,45 @@ def g():
 
         print "##### Epoch %s training_error = %s, valid_error = %s, test_error = %s\n \
         training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
-                " % (e + 1, training_error_avg, valid_error_avg, test_error_avg \
+                " % (e + 1, training_error_avg, valid_error_avg, test_error_avg, \
                     training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
 
-        ''' Visualization '''
-        # Cross Entropy
-        plt.figure(1)
-        plt.xlabel("# epochs")
-        plt.ylabel("error")
-        plt.plot(training_error_list, label='training error')
-        plt.plot(valid_error_list, label='valid error')
-        plt.plot(test_error_list, label='test error')
-        plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
-                % (eta, momentum, layer_size['1']))
-        plt.legend()
-        # Classification Error
-        plt.figure(2)
-        plt.xlabel("# epochs")
-        plt.ylabel("error(%)")
-        plt.plot(training_error_list, label='training classification error')
-        plt.plot(valid_error_list, label='valid classification error')
-        plt.plot(test_error_list, label='test classification error')
-        plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
-                % (eta, momentum, layer_size['1']))
-        plt.legend()
-        # Best weights
-        plt.figure(3)
-        fig, axs = plt.subplots(10, 10)
-        # Remove horizontal space between axes
-        fig.subplots_adjust(wspace=0, hspace=0)
-        count = 1
-        for i in range(10):
-            for j in range(10):
-                plt.subplot(10, 10, count)
-                plt.xticks([])
-                plt.yticks([])
-                plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
-                count += 1
+    ''' Visualization '''
+    # Cross Entropy
+    plt.figure(1)
+    plt.xlabel("# epochs")
+    plt.ylabel("error")
+    plt.plot(training_error_list, label='training error')
+    plt.plot(valid_error_list, label='valid error')
+    plt.plot(test_error_list, label='test error')
+    plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
+            % (eta, momentum, layer_size['1']))
+    plt.legend()
+    # Classification Error
+    plt.figure(2)
+    plt.xlabel("# epochs")
+    plt.ylabel("error(%)")
+    plt.plot(training_error_list, label='training classification error')
+    plt.plot(valid_error_list, label='valid classification error')
+    plt.plot(test_error_list, label='test classification error')
+    plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
+            % (eta, momentum, layer_size['1']))
+    plt.legend()
+    # Best weights
+    plt.figure(3)
+    fig, axs = plt.subplots(10, 10)
+    # Remove horizontal space between axes
+    fig.subplots_adjust(wspace=0, hspace=0)
+    count = 1
+    for i in range(10):
+        for j in range(10):
+            plt.subplot(10, 10, count)
+            plt.xticks([])
+            plt.yticks([])
+            plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+            count += 1
 
-        plt.show()
-        elif sys.argv[1] == '-c':
-            return best_weights
+    plt.show()
 
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
@@ -630,6 +628,6 @@ def load_data(data_file):
 # print softmax(b)
 
 # Function chooser
-func_arg = {"-a": a, "-b": b, "-c": c}
+func_arg = {"-a": a, "-b": b, "-c": c, "-g": g}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
