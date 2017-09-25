@@ -12,10 +12,10 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 50     # 200
-eta = 0.1   # learning rate
+eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 4, '2': 4, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -352,10 +352,9 @@ def g():
             training_error += cross_entropy(o, y)
             training_classify_error += classification_error(o, label)
 
-            ''' Backprops '''
-            # Update weights['3']
-            loss_over_a3 = np.transpose(softmax_derivative(o, y))   # (1, 10)
+            ''' Backprops (compute the gradients) '''
             # w3 gradient
+            loss_over_a3 = np.transpose(softmax_derivative(o, y))   # (1, 10)
             w3_curr_gradient = np.dot(h2, loss_over_a3)   # 100*10
             w3_gradient = get_gradient(w3_curr_gradient, w3_prev_gradient,\
                                     momentum, reg_lambda, weights['3'])
@@ -364,12 +363,10 @@ def g():
             b3_gradient = get_gradient(b3_curr_gradient, b3_prev_gradient, \
                                     momentum, 0, biases['3'])
 
-            sgd(w3_gradient, b3_gradient, '3', eta)
-
-            # Update weights['2']
+            # w2 gradient, weight decay
             loss_over_h2 = np.dot(weights['3'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a2 = np.multiply(loss_over_h2, sigmoid_derivative(a2))    #(100, 1)
-            # w2 gradient, weight decay
+
             w2_curr_gradient = np.dot(h1, np.transpose(loss_over_a2))
             w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
                                     momentum, reg_lambda, weights['2'])
@@ -377,12 +374,10 @@ def g():
             b2_curr_gradient = loss_over_a2
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
                                     momentum, 0, biases['2'])
-            sgd(w2_gradient, b2_gradient, '2', eta)
-
-            # Update weights['1']
+            # w1 gradient, weight decay
             loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
-            # w1 gradient, weight decay
+
             w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
             w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
                                     momentum, reg_lambda, weights['1'])
@@ -390,9 +385,15 @@ def g():
             b1_curr_gradient = loss_over_a1
             b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
                                     momentum, 0, biases['1'])
+            ''' SGD update parameters '''
+            # sgd update parameters
+            # Update weights['3']
+            sgd(w3_gradient, b3_gradient, '3', eta)
+            # Update weights['2']
+            sgd(w2_gradient, b2_gradient, '2', eta)
+            # Update weights['1']
             sgd(w1_gradient, b1_gradient, '1', eta)
-
-            # update gradient parameters
+            # update previous gradient parameters
             w1_prev_gradient = w1_gradient
             b1_prev_gradient = b1_gradient
 
