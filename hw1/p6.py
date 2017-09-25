@@ -11,11 +11,11 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 100     # 200
+epochs = 50     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
-reg_lambda = 0 # regularization strength
-layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
+reg_lambda = 0.0001 # regularization strength
+layer_size = {'1': 4, '2': 4, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -471,8 +471,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
     plt.plot(training_error_list, label='training error')
     plt.plot(valid_error_list, label='valid error')
     plt.plot(test_error_list, label='test error')
-    plt.title('Cross Entropy (learning rate = %s, momentum = %s, hidden 1 = %s, hidden 2 = %s)'\
-            % (eta, momentum, layer_size['1'], layer_size['2']))
+    plt.title('Cross Entropy\n (learning rate = %s, momentum = %s, reg_lambda=%s, hidden 1 = %s, hidden 2 = %s)'\
+            % (eta, momentum, reg_lambda, layer_size['1'], layer_size['2']))
     plt.legend()
     # Classification Error
     plt.figure(2)
