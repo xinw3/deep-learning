@@ -15,7 +15,7 @@ epochs = 40     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 100, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -288,6 +288,116 @@ def c():
             plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
             count += 1
     plt.show()
+
+def g():
+    '''
+        Two layer neural net
+    '''
+    # Load Training Data (3000, 785)
+    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
+    # Load Validation Data (1000, 785)
+    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Load Test Data (3000, 785)
+    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
+    min_valid_error = sys.maxint
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+    num_test_example = x_test.shape[0]
+
+    layer_size['0'] = x_train.shape[1]
+    # Initialize weights(a dictionary holds all the weightss)
+    weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
+    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 100), (100, 1)
+    weights['3'], biases['3'] = init_params('3' ,layer_size['2'], layer_size['output'])   # (100, 10), (10, 1)
+
+    w1_prev_gradient = np.zeros(weights['1'].shape)
+    w2_prev_gradient = np.zeros(weights['2'].shape)
+    w3_prev_gradient = np.zeros(weights['3'].shape)
+
+    b1_prev_gradient = np.zeros(biases['1'].shape)
+    b2_prev_gradient = np.zeros(biases['2'].shape)
+    b3_prev_gradient = np.zeros(biases['3'].shape)
+
+    # Creat lists for containing the errors
+    training_error_list = []
+    valid_error_list = []
+    test_error_list = []
+    # Run epochs times
+    for e in range(epochs):
+        training_error = 0      # training cross entropy
+        valid_error = 0         # valid cross entropy
+        test_error = 0          # test error
+        training_classify_error = 0     # training classification error
+        valid_classify_error = 0        # valid classification error
+        test_classify_error = 0          # test classification error
+        ''' Training '''
+        for i in range(num_training_example):
+            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['output'], 1))
+            label = int(y_train[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the 1st hidden layer, input of the 2nd hidden layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
+            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            o = softmax(a3)     # (10, 1)
+            training_error += cross_entropy(o, y)
+            training_classify_error += classification_error(o, label)
+
+            ''' Backprops '''
+            # Update weights['3']
+            loss_over_a3 = np.transpose(softmax_derivative(o, y))   # (1, 10)
+            # w3 gradient
+            w3_curr_gradient = np.dot(h2, loss_over_a3)   # 100*10
+            w3_gradient = get_gradient(w3_curr_gradient, w3_prev_gradient,\
+                                    momentum, reg_lambda, weights['3'])
+            # b3 gradient
+            b3_curr_gradient = softmax_derivative(o, y)
+            b3_gradient = get_gradient(b3_curr_gradient, b3_prev_gradient, \
+                                    momentum, 0, biases['3'])
+
+            sgd(w3_gradient, b3_gradient, '3', eta)
+
+            # Update weights['2']
+            loss_over_h2 = np.dot(weights['3'], softmax_derivative(o, y))   # (100, 1)
+            loss_over_a2 = np.multiply(loss_over_h2, sigmoid_derivative(a2))    #(100, 1)
+            # w2 gradient, weight decay
+            w2_curr_gradient = np.dot(h1, np.transpose(loss_over_a2))
+            w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
+                                    momentum, reg_lambda, weights['2'])
+            # b2 gradient, no bias decay
+            b2_curr_gradient = loss_over_a2
+            b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
+                                    momentum, 0, biases['2'])
+            sgd(w1_gradient, b1_gradient, '2', eta)
+
+            # Update weights['1']
+            loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 1)
+            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
+            # w1 gradient, weight decay
+            w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
+            w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
+                                    momentum, reg_lambda, weights['1'])
+            # b1 gradient, no bias decay
+            b1_curr_gradient = loss_over_a1
+            b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
+                                    momentum, 0, biases['1'])
+            sgd(w1_gradient, b1_gradient, '1', eta)
+
+            # update gradient parameters
+            w1_prev_gradient = w1_gradient
+            b1_prev_gradient = b1_gradient
+
+            w2_prev_gradient = w2_gradient
+            b2_prev_gradient = b2_gradient
+
+            w3_prev_gradient = w3_gradient
+            b3_prev_gradient = b3_gradient
+
+
+
 
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
