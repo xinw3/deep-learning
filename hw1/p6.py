@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 200     # 200
+epochs = 5     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0 # regularization strength
@@ -485,13 +485,12 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
             % (eta, momentum, layer_size['1'], layer_size['2']))
     plt.legend()
     # Best weights
-    plt.figure(3)
     fig, axs = plt.subplots(10, 10)
     # Remove horizontal space between axes
     fig.subplots_adjust(wspace=0, hspace=0)
     count = 1
-    for i in range(np.sqrt(layer_size['1'])):
-        for j in range(np.sqrt(layer_size['1'])):
+    for i in range(int(np.sqrt(layer_size['1']))):
+        for j in range(int(np.sqrt(layer_size['1']))):
             plt.subplot(10, 10, count)
             plt.xticks([])
             plt.yticks([])
