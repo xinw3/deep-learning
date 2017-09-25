@@ -15,7 +15,7 @@ epochs = 200     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0 # regularization strength
-layer_size = {'1': 10, '2': 10, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -347,7 +347,7 @@ def g():
             h1 = sigmoid(a1)  # Output of the 1st hidden layer, input of the 2nd hidden layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
             h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
-            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             training_error += cross_entropy(o, y)
             training_classify_error += classification_error(o, label)
@@ -471,8 +471,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
     plt.plot(training_error_list, label='training error')
     plt.plot(valid_error_list, label='valid error')
     plt.plot(test_error_list, label='test error')
-    plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
-            % (eta, momentum, layer_size['1']))
+    plt.title('Cross Entropy (learning rate = %s, momentum = %s, hidden units 1 = %s, hidden units 2 = %s)'\
+            % (eta, momentum, layer_size['1'], layer_size['2']))
     plt.legend()
     # Classification Error
     plt.figure(2)
@@ -481,8 +481,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
     plt.plot(training_error_list, label='training classification error')
     plt.plot(valid_error_list, label='valid classification error')
     plt.plot(test_error_list, label='test classification error')
-    plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
-            % (eta, momentum, layer_size['1']))
+    plt.title('Classification Error (learning rate = %s, momentum = %s, hidden units 1 = %s, hidden units 2 = %s)'\
+            % (eta, momentum, layer_size['1'], layer_size['2']))
     plt.legend()
     # Best weights
     plt.figure(3)
@@ -490,8 +490,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
     # Remove horizontal space between axes
     fig.subplots_adjust(wspace=0, hspace=0)
     count = 1
-    for i in range(10):
-        for j in range(10):
+    for i in range(np.sqrt(layer_size['1'])):
+        for j in range(np.sqrt(layer_size['1'])):
             plt.subplot(10, 10, count)
             plt.xticks([])
             plt.yticks([])
