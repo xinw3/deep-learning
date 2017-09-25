@@ -319,10 +319,16 @@ def g():
     b2_prev_gradient = np.zeros(biases['2'].shape)
     b3_prev_gradient = np.zeros(biases['3'].shape)
 
-    # Creat lists for containing the errors
+    # Creat lists for containing the cross entropy errors
     training_error_list = []
     valid_error_list = []
     test_error_list = []
+
+    # Creat lists for containing the classification errors
+    training_classify_error_list = []
+    valid_classify_error_list = []
+    test_classify_error_list = []
+
     # Run epochs times
     for e in range(epochs):
         training_error = 0      # training cross entropy
@@ -396,8 +402,105 @@ def g():
             w3_prev_gradient = w3_gradient
             b3_prev_gradient = b3_gradient
 
+        ''' Validation '''
+        for i in range(num_valid_example):
+            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['output'], 1))
+            label = int(y_valid[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of the 2nd hidden layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
+            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            o = softmax(a3)     # (10, 1)
+            valid_error += cross_entropy(o, y)
+            valid_classify_error += classification_error(o, label)
 
+        ''' Test '''
+        for i in range(num_test_example):
+            x = x_test[i, :].reshape(len(x_test[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['output'], 1))
+            label = int(y_test[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
+            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            o = softmax(a3)     # (10, 1)
+            test_error += cross_entropy(o, y)
+            test_classify_error += classification_error(o, label)
 
+        # Add regularizer cross entropy
+        training_error_avg = training_error / num_training_example
+        training_error_avg = get_l2_loss(training_error_avg, weights, reg_lambda)
+
+        valid_error_avg = valid_error / num_valid_example
+        test_error_avg = test_error / num_test_example
+
+        # Add classification errors into lists
+        training_classify_error_avg = float(training_classify_error) / num_training_example * 100
+        valid_classify_error_avg = float(valid_classify_error) / num_valid_example * 100
+        test_classify_error_avg = float(test_classify_error) / num_test_example * 100
+
+        if valid_error_avg < min_valid_error:
+            min_valid_error = valid_error_avg
+            best_weights = deepcopy(weights)
+
+        # cross entropy error lists
+        training_error_list.append(training_error_avg)
+        valid_error_list.append(valid_error_avg)
+        test_error_list.append(test_error_avg)
+
+        # classification error lists
+        training_classify_error_list.append(training_classify_error_avg)
+        valid_classify_error_list.append(valid_classify_error_avg)
+        test_classify_error_list.append(test_classify_error_avg)
+
+        print "##### Epoch %s training_error = %s, valid_error = %s, test_error = %s\n \
+        training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% \
+                " % (e + 1, training_error_avg, valid_error_avg, test_error_avg \
+                    training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
+
+        ''' Visualization '''
+        # Cross Entropy
+        plt.figure(1)
+        plt.xlabel("# epochs")
+        plt.ylabel("error")
+        plt.plot(training_error_list, label='training error')
+        plt.plot(valid_error_list, label='valid error')
+        plt.plot(test_error_list, label='test error')
+        plt.title('Cross Entropy (learning rate = %s, momentum = %s, layer_size = %s)'\
+                % (eta, momentum, layer_size['1']))
+        plt.legend()
+        # Classification Error
+        plt.figure(2)
+        plt.xlabel("# epochs")
+        plt.ylabel("error(%)")
+        plt.plot(training_error_list, label='training classification error')
+        plt.plot(valid_error_list, label='valid classification error')
+        plt.plot(test_error_list, label='test classification error')
+        plt.title('Classification Error (learning rate = %s, momentum = %s, layer_size = %s)'\
+                % (eta, momentum, layer_size['1']))
+        plt.legend()
+        # Best weights
+        plt.figure(3)
+        fig, axs = plt.subplots(10, 10)
+        # Remove horizontal space between axes
+        fig.subplots_adjust(wspace=0, hspace=0)
+        count = 1
+        for i in range(10):
+            for j in range(10):
+                plt.subplot(10, 10, count)
+                plt.xticks([])
+                plt.yticks([])
+                plt.imshow(best_weights['1'][:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+                count += 1
+
+        plt.show()
+        elif sys.argv[1] == '-c':
+            return best_weights
 
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
