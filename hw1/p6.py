@@ -12,7 +12,7 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 400     # 200
-eta = 0.001   # learning rate
+eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
@@ -413,7 +413,7 @@ def g():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of the 2nd hidden layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
             h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
-            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             valid_error += cross_entropy(o, y)
             valid_classify_error += classification_error(o, label)
@@ -428,7 +428,7 @@ def g():
             h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
             h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
-            a3 = feedforward(weights['3'], h1, biases['3']) # (10, 1)
+            a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             test_error += cross_entropy(o, y)
             test_classify_error += classification_error(o, label)
@@ -459,9 +459,9 @@ def g():
         valid_classify_error_list.append(valid_classify_error_avg)
         test_classify_error_list.append(test_classify_error_avg)
 
-        print "##### Epoch %s epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
+        print "##### Epoch %s epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
 training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #####\n\n \
-               " % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'], training_error_avg, valid_error_avg, test_error_avg, \
+               " % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg, test_error_avg, \
                     training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
 
     ''' Visualization '''
