@@ -15,7 +15,7 @@ epochs = 40     # 200
 eta = 0.1   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 100, '2':10}     # number of hidden units
+layer_size = {'1': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
 best_weights = {}
@@ -41,7 +41,7 @@ def a():
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
-    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['output'])   # (100, 10), (10, 1)
     w1_prev_gradient = np.zeros(weights['1'].shape)
     w2_prev_gradient = np.zeros(weights['2'].shape)
     b1_prev_gradient = np.zeros(biases['1'].shape)
@@ -58,7 +58,7 @@ def a():
         ''' Training '''
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_train[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -100,7 +100,7 @@ def a():
         ''' Validation '''
         for i in range(num_valid_example):
             x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_valid[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -112,7 +112,7 @@ def a():
         ''' Test '''
         for i in range(num_test_example):
             x = x_test[i, :].reshape(len(x_test[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_test[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -171,7 +171,7 @@ def b():
     layer_size['0'] = x_train.shape[1]
     # Initialize weights(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
-    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 10), (10, 1)
+    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['output'])   # (100, 10), (10, 1)
     w1_prev_gradient = np.zeros(weights['1'].shape)
     w2_prev_gradient = np.zeros(weights['2'].shape)
     b1_prev_gradient = np.zeros(biases['1'].shape)
@@ -188,7 +188,7 @@ def b():
         ''' Training '''
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_train[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -230,7 +230,7 @@ def b():
         ''' Validation '''
         for i in range(num_valid_example):
             x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_valid[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
@@ -242,7 +242,7 @@ def b():
         ''' Test '''
         for i in range(num_test_example):
             x = x_test[i, :].reshape(len(x_test[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
+            y = np.zeros((layer_size['output'], 1))
             label = int(y_test[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
