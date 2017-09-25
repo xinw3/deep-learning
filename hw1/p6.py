@@ -11,10 +11,10 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 50     # 200
+epochs = 100     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
-reg_lambda = 0.0001 # regularization strength
+reg_lambda = 0 # regularization strength
 layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 # Parameter dictionaries
 weights = {}
