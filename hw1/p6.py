@@ -11,11 +11,11 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 400     # 200
+epochs = 800     # 200
 eta = 0.001   # learning rate
 momentum = 0
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
+layer_size = {'1': 400, '2': 100, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -514,13 +514,11 @@ def h():
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
-    # Load Test Data (3000, 785)
-    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
+
     min_valid_error = sys.maxint
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
-    num_test_example = x_test.shape[0]
 
     num_features = x_train.shape[1]
 
@@ -552,21 +550,11 @@ def h():
     # Creat lists for containing the cross entropy errors
     training_error_list = []
     valid_error_list = []
-    test_error_list = []
-
-    # Creat lists for containing the classification errors
-    training_classify_error_list = []
-    valid_classify_error_list = []
-    test_classify_error_list = []
 
     # Run epochs times
     for e in range(epochs):
         training_error = 0      # training cross entropy
         valid_error = 0         # valid cross entropy
-        test_error = 0          # test error
-        training_classify_error = 0     # training classification error
-        valid_classify_error = 0        # valid classification error
-        test_classify_error = 0          # test classification error
         i_train = 0
         i_valid = 0
         ''' Training '''
@@ -613,11 +601,12 @@ def h():
                                     momentum, 0, biases['3'])
             # w2 gradient, weight decay
             loss_over_h2 = np.dot(weights['3'], np.transpose(loss_over_a3))   # (100, 32)
-            loss_over_b2 = np.multiply(loss_over_h2, np.transpose(sigmoid_derivative(b2)))    #(100, 32)
-            b2_over_a2, b2_over_gamma2 = batch_norm_backward(b2, cache2)    #(32, 100)
-            b2_over_w2 = np.multiply(b2_over_a2, np.transpose(h1))  # (32, 100)
+            loss_over_b2 = np.multiply(loss_over_h2, np.transpose(sigmoid_derivative(b2)))    # (100, 32)
+            b2_over_a2, b2_over_gamma2 = batch_norm_backward(b2, cache2)    # (32, 100)
+            loss_over_a2 = np.multiply(np.transpose(loss_over_b2), b2_over_a2)  # (32, 100)
+            # print "h1.shape = %s, b1.shape = %s, a2.shape = %s, b2 shape = %s, loss_over_a2 = %s" % (h1.shape, b1.shape, a2.shape, b2.shape, loss_over_a2.shape)
 
-            w2_curr_gradient = np.dot(loss_over_b2, b2_over_w2)     #(100, 100)
+            w2_curr_gradient = np.dot(h1, loss_over_a2)     #(400, 100) (h2,h1)
             w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
                                     momentum, reg_lambda, weights['2'])
             # b2 gradient, no bias decay
@@ -723,8 +712,22 @@ def h():
 
         valid_error_avg = valid_error / num_valid_example
         training_error_avg = training_error / num_training_example
+        # cross entropy error lists
+        training_error_list.append(training_error_avg)
+        valid_error_list.append(valid_error_avg)
         print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s, valid_error = %s\n" \
             % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg)
+    ''' Visualization '''
+    # Cross Entropy
+    plt.xlabel("# epochs")
+    plt.ylabel("error")
+    plt.plot(training_error_list, label='training error')
+    plt.plot(valid_error_list, label='valid error')
+    plt.plot(test_error_list, label='test error')
+    plt.title('Cross Entropy\n (learning rate = %s, momentum = %s, reg_lambda=%s, hidden 1 = %s, hidden 2 = %s)'\
+            % (eta, momentum, reg_lambda, layer_size['1'], layer_size['2']))
+    plt.legend()
+    plt.show()
 
 def batch_norm_forward(x, gamma, beta, eps):
     """
