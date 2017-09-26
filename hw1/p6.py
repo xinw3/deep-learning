@@ -11,11 +11,11 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 800     # 200
-eta = 0.001   # learning rate
+epochs = 400     # 200
+eta = 0.01   # learning rate
 momentum = 0
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 400, '2': 100, 'output':10}     # number of hidden units
+layer_size = {'1': 16, '2': 16, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -619,7 +619,7 @@ def h():
             loss_over_gamma2 = np.multiply(loss_over_b2, b2_over_gamma2)  # (100, 32)
             gamma2_curr_gradient = np.sum(loss_over_gamma2, axis=1)     # (100, 1)
             gamma2_gradient = get_gradient(gamma2_curr_gradient, gamma2_prev_gradient, \
-                                    momentum, reg_lambda, gamma['2'])
+                                    momentum, 0, gamma['2'])
 
             # beta2 gradient, no weight decay
             beta2_curr_gradient = np.sum(loss_over_b2, axis=1)  # (100, 1)
@@ -645,7 +645,7 @@ def h():
             loss_over_gamma1 = np.multiply(loss_over_b1, b1_over_gamma1)  # (100, 32)
             gamma1_curr_gradient = np.sum(loss_over_gamma1, axis=1)     # (100, 1)
             gamma1_gradient = get_gradient(gamma1_curr_gradient, gamma1_prev_gradient, \
-                                    momentum, reg_lambda, gamma['1'])
+                                    momentum, 0, gamma['1'])
             # beta1 gradient, no weight decay
             beta1_curr_gradient = np.sum(loss_over_b1, axis=1)  # (100, 1)
             beta1_gradient = get_gradient(beta1_curr_gradient, beta1_prev_gradient, \
@@ -723,7 +723,6 @@ def h():
     plt.ylabel("error")
     plt.plot(training_error_list, label='training error')
     plt.plot(valid_error_list, label='valid error')
-    plt.plot(test_error_list, label='test error')
     plt.title('Cross Entropy\n (learning rate = %s, momentum = %s, reg_lambda=%s, hidden 1 = %s, hidden 2 = %s)'\
             % (eta, momentum, reg_lambda, layer_size['1'], layer_size['2']))
     plt.legend()
