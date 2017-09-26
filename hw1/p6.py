@@ -688,8 +688,10 @@ def h():
 
             beta2_prev_gradient = beta2_gradient
             beta1_prev_gradient = beta1_gradient
+            # update counter
+            i = j
         training_error_avg = training_error / num_training_example
-        print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s, valid_error = %s\n" \
+        print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s\n" \
             % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg)
 
 def batch_norm_forward(x, gamma, beta, eps):
