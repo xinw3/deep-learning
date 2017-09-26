@@ -15,7 +15,7 @@ epochs = 5     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 16, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -303,7 +303,7 @@ def g():
     x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
     min_valid_error = sys.maxint
     if len(sys.argv) >= 3:
-        ac_func = 'sys.argv[3]'
+        ac_func = sys.argv[3]
     else:
         ac_func = 'sigmoid'
     # Get number of examples
