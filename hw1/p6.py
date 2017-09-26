@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 5     # 200
+epochs = 200     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
@@ -465,7 +465,7 @@ def g():
         valid_classify_error_list.append(valid_classify_error_avg)
         test_classify_error_list.append(test_classify_error_avg)
 
-        print "##### Epoch %s ac_func = %s, epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
+        print "##### Epoch %s ac_func=%s, epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
 training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #####\n\n \
                " % (e + 1, ac_func, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg, test_error_avg, \
                     training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
@@ -478,8 +478,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
     plt.plot(training_error_list, label='training error')
     plt.plot(valid_error_list, label='valid error')
     plt.plot(test_error_list, label='test error')
-    plt.title('Cross Entropy\n (learning rate = %s, momentum = %s, reg_lambda=%s, hidden 1 = %s, hidden 2 = %s)'\
-            % (eta, momentum, reg_lambda, layer_size['1'], layer_size['2']))
+    plt.title('Cross Entropy\n (ac_func=%s, learning rate=%s, momentum=%s, reg_lambda=%s, hidden1=%s, hidden2=%s)'\
+            % (ac_func, eta, momentum, reg_lambda, layer_size['1'], layer_size['2']))
     plt.legend()
     # Classification Error
     plt.figure(2)
@@ -488,8 +488,8 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
     plt.plot(training_classify_error_list, label='training classification error')
     plt.plot(valid_classify_error_list, label='valid classification error')
     plt.plot(test_classify_error_list, label='test classification error')
-    plt.title('Classification Error (learning rate = %s, momentum = %s, hidden 1 = %s, hidden 2 = %s)'\
-            % (eta, momentum, layer_size['1'], layer_size['2']))
+    plt.title('Classification Error\n (ac_func=%s, learning rate = %s, momentum = %s, hidden1= %s, hidden2=%s)'\
+            % (ac_func, eta, momentum, layer_size['1'], layer_size['2']))
     plt.legend()
     # Best weights
     fig, axs = plt.subplots(10, 10)
