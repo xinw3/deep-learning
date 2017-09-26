@@ -507,7 +507,8 @@ def batch_norm_forward(x, gamma, beta, eps):
     """
         Input:
             x: to be normalized inputs
-        gamma:
+        gamma: (D,)
+         beta: (D,)
     """
 
     N, D = x.shape
@@ -528,13 +529,46 @@ def batch_norm_forward(x, gamma, beta, eps):
     # 8. Get rx
     gamma_times_x = gamma * x_normalized
     # 9. Output
-    output = gammax + beta
+    out = gamma_times_x + beta
 
     #store intermediate
     cache = (x_normalized, gamma, x_subtracted_mu,\
             inverted_denominator,denominator,var,eps)
 
-    return output, cache
+    return out, cache
+
+def batch_norm_backward(dout, cache):
+    # Get the variables stored in forward process
+    (x_normalized, gamma, x_subtracted_mu,\
+        inverted_denominator,denominator,var,eps) = cache
+    # Get the dimensions of the input/output
+    N,D = dout.shape
+    # 9.
+    d_beta = np.sum(dout, axis=0)
+    d_gammax = dout #not necessary, but more understandable
+    # 8.
+    d_gamma = np.sum(dgammax * x_normalized, axis=0)
+    d_x_normalized = dgammax * gamma
+    # 7.
+    d_inverted_denominator = np.sum(dxhat*xmu, axis=0)
+    dxmu1 = d_x_normalized * inverted_denominator
+    # 6.
+    d_denominator = -1. /(denominator ** 2) * d_inverted_denominator
+    # 5.
+    dvar = 0.5 * 1. /np.sqrt(var+eps) * d_denominator
+    # 4.
+    d_x_subtracted_mu_squared = 1. /N * np.ones((N,D)) * dvar
+    # 3.
+    dxmu2 = 2 * x_subtracted_mu * d_x_subtracted_mu_squared
+    # 2.
+    dx1 = (dxmu1 + dxmu2)
+    dmu = -1 * np.sum(dxmu1+dxmu2, axis=0)
+    # 1.
+    dx2 = 1. /N * np.ones((N,D)) * dmu
+    # 0.
+    dx = dx1 + dx2
+
+    return dx, d_gamma, d_beta
 
 
 def sgd(w_gradient, b_gradient, layer, eta):
