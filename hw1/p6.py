@@ -626,7 +626,7 @@ def h():
 
             # gamma2 gradient, add weight decay factor?
             loss_over_gamma2 = np.multiply(loss_over_b2, b2_over_gamma2)  # (100, 32)
-            gamma2_curr_gradient = np.sum(loss_over_gamma2, axis=1)
+            gamma2_curr_gradient = np.sum(loss_over_gamma2, axis=1)     # (100, 1)
             gamma2_gradient = get_gradient(gamma2_curr_gradient, gamma2_prev_gradient, \
                                     momentum, reg_lambda, gamma['2'])
 
@@ -637,7 +637,7 @@ def h():
 
             loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 32)
             loss_over_b1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 32)
-            b1_over_a1, b1_over_gamma1 = batch_norm_backward(b1, cache1)    # (100, 32)
+            b1_over_a1, b1_over_gamma1 = batch_norm_backward(b1, cache1)    # (100, 32), (100, 1)
             loss_over_a1 = np.multiply(loss_over_b1, b1_over_a1)    # (100, 32)
 
             # w1 gradient, weight decay
@@ -650,14 +650,28 @@ def h():
             b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
                                     momentum, 0, biases['1'])
 
+            # gamma1 gradient
+            loss_over_gamma1 = np.multiply(loss_over_b1, b1_over_gamma1)  # (100, 32)
+            gamma1_curr_gradient = np.sum(loss_over_gamma1, axis=1)     # (100, 1)
+            gamma1_gradient = get_gradient(gamma1_curr_gradient, gamma1_prev_gradient, \
+                                    momentum, reg_lambda, gamma['1'])
+            # beta1 gradient, no weight decay
+            beta1_curr_gradient = np.sum(loss_over_b1, axis=1)  # (100, 1)
+            beta1_gradient = get_gradient(beta1_curr_gradient, beta1_prev_gradient, \
+                                    momentum, 0, beta['1'])
+
             ''' SGD update parameters '''
-            # sgd update parameters
             # Update weights['3']
             sgd(w3_gradient, b3_gradient, '3', eta)
             # Update weights['2']
             sgd(w2_gradient, b2_gradient, '2', eta)
             # Update weights['1']
-            sgd(w1_gradient, b1_gradient, '1', eta)
+            sgd(w1_gradient, b1_gradient, '1', eta)\
+            # Update parameters of batch normalization
+            gamma['2'] -= eta * gamma2_gradient
+            gamma['1'] -= eta * gamma1_gradient
+            beta['2'] -= eta * beta2_gradient
+            beta['1'] -= eta * beta1_gradient
             # update previous gradient parameters
             w1_prev_gradient = w1_gradient
             b1_prev_gradient = b1_gradient
@@ -669,8 +683,10 @@ def h():
             b3_prev_gradient = b3_gradient
 
             gamma2_prev_gradient = gamma2_gradient
+            gamma1_prev_gradient = gamma1_gradient
 
-
+            beta2_prev_gradient = beta2_gradient
+            beta1_prev_gradient = beta1_gradient
 
 
 def batch_norm_forward(x, gamma, beta, eps):
