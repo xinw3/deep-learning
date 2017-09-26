@@ -13,7 +13,7 @@ test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 400     # 200
 eta = 0.01   # learning rate
-momentum = 0
+momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
@@ -847,6 +847,28 @@ def get_l2_loss(avg_loss, weights, reg_lambda):
     return avg_loss + \
         reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
 
+def activation(x):
+    if sys.argv[2] == '--activation':
+        if sys.argv[3] == 'tanh':
+            tanh(x)
+        if sys.argv[3] == 'relu':
+            relu(x)
+        if sys.argv[3] == 'sigmoid':
+            sigmoid(x)
+    else:
+        sigmoid(x)
+
+def activation_derivative(x):
+    if sys.argv[2] == '--activation':
+        if sys.argv[3] == 'tanh':
+            tanh_derivative(x)
+        if sys.argv[3] == 'relu':
+            relu_derivative(x)
+        if sys.argv[3] == 'sigmoid':
+            sigmoid_derivative(x)
+    else:
+        sigmoid_derivative(x)
+
 def relu(x):
     return np.maximum(x, 0, x)
 
@@ -918,6 +940,12 @@ def load_data(data_file):
 # print softmax(b)
 
 # Function chooser
+"""
+    arguments:
+        sys.argv[1]: to run which question (-a, -b, -c, -g, -h)
+        sys.argv[2]: if want to change activation function. (--activation)
+        sys.argv[3]: declare which activation function to use. (sigmoid, tanh, relu)
+"""
 func_arg = {"-a": a, "-b": b, "-c": c, "-g": g, "-h": h}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
