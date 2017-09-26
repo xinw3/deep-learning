@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 400     # 200
+epochs = 5     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
@@ -302,6 +302,10 @@ def g():
     # Load Test Data (3000, 785)
     x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
     min_valid_error = sys.maxint
+    if len(sys.argv) >= 3:
+        ac_func = 'sys.argv[3]'
+    else:
+        ac_func = 'sigmoid'
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
@@ -346,9 +350,9 @@ def g():
             label = int(y_train[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
-            h1 = sigmoid(a1)  # Output of the 1st hidden layer, input of the 2nd hidden layer
+            h1 = activation(a1)  # Output of the 1st hidden layer, input of the 2nd hidden layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
-            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            h2 = activation(a2)  # Output of the 2nd hidden layer, input of the last layer
             a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             training_error += cross_entropy(o, y)
@@ -367,7 +371,7 @@ def g():
 
             # w2 gradient, weight decay
             loss_over_h2 = np.dot(weights['3'], softmax_derivative(o, y))   # (100, 1)
-            loss_over_a2 = np.multiply(loss_over_h2, sigmoid_derivative(a2))    #(100, 1)
+            loss_over_a2 = np.multiply(loss_over_h2, activation_derivative(a2))    #(100, 1)
 
             w2_curr_gradient = np.dot(h1, np.transpose(loss_over_a2))
             w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
@@ -378,7 +382,7 @@ def g():
                                     momentum, 0, biases['2'])
             # w1 gradient, weight decay
             loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 1)
-            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
+            loss_over_a1 = np.multiply(loss_over_h1, activation_derivative(a1))    #(100, 1)
 
             w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))
             w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
@@ -412,9 +416,9 @@ def g():
             label = int(y_valid[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
-            h1 = sigmoid(a1)  # Output of the hidden layer, input of the 2nd hidden layer
+            h1 = activation(a1)  # Output of the hidden layer, input of the 2nd hidden layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
-            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            h2 = activation(a2)  # Output of the 2nd hidden layer, input of the last layer
             a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             valid_error += cross_entropy(o, y)
@@ -427,9 +431,9 @@ def g():
             label = int(y_test[i,0])
             y[label] = 1
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
-            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            h1 = activation(a1)  # Output of the hidden layer, input of last layer
             a2 = feedforward(weights['2'], h1, biases['2']) # (100, 1)
-            h2 = sigmoid(a2)  # Output of the 2nd hidden layer, input of the last layer
+            h2 = activation(a2)  # Output of the 2nd hidden layer, input of the last layer
             a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             test_error += cross_entropy(o, y)
@@ -461,9 +465,9 @@ def g():
         valid_classify_error_list.append(valid_classify_error_avg)
         test_classify_error_list.append(test_classify_error_avg)
 
-        print "##### Epoch %s epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
+        print "##### Epoch %s ac_func = %s, epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s #####\n training_error = %s, valid_error = %s, test_error = %s\n \
 training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #####\n\n \
-               " % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg, test_error_avg, \
+               " % (e + 1, ac_func, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg, test_error_avg, \
                     training_classify_error_avg, valid_classify_error_avg, test_classify_error_avg)
 
     ''' Visualization '''
@@ -848,26 +852,28 @@ def get_l2_loss(avg_loss, weights, reg_lambda):
         reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
 
 def activation(x):
-    if sys.argv[2] == '--activation':
-        if sys.argv[3] == 'tanh':
-            tanh(x)
-        if sys.argv[3] == 'relu':
-            relu(x)
-        if sys.argv[3] == 'sigmoid':
-            sigmoid(x)
+    if len(sys.argv) >= 3:
+        if sys.argv[2] == '--activation':
+            if sys.argv[3] == 'tanh':
+                return tanh(x)
+            if sys.argv[3] == 'relu':
+                return relu(x)
+            if sys.argv[3] == 'sigmoid':
+                return sigmoid(x)
     else:
-        sigmoid(x)
+        return sigmoid(x)
 
 def activation_derivative(x):
-    if sys.argv[2] == '--activation':
-        if sys.argv[3] == 'tanh':
-            tanh_derivative(x)
-        if sys.argv[3] == 'relu':
-            relu_derivative(x)
-        if sys.argv[3] == 'sigmoid':
-            sigmoid_derivative(x)
+    if len(sys.argv) >= 3:
+        if sys.argv[2] == '--activation':
+            if sys.argv[3] == 'tanh':
+                return tanh_derivative(x)
+            if sys.argv[3] == 'relu':
+                return relu_derivative(x)
+            if sys.argv[3] == 'sigmoid':
+                return sigmoid_derivative(x)
     else:
-        sigmoid_derivative(x)
+        return sigmoid_derivative(x)
 
 def relu(x):
     return np.maximum(x, 0, x)
