@@ -1,0 +1,20 @@
+############### Code for Homework1 Problem 6 (xinw3) ##############
+1. To execute the code, please type "python p6.py -[problem letter]".
+Replace [problem letter] with "a", "b", "c", "g", "h", which correspond to the problems
+
+Example: python p6.py -a
+
+2. For d), e) and f), if you want to try different parameters,
+just open p6.py, find them at the beginning and change to the parameters you want.
+
+I don't have too much time to make them into arguments that can be passed
+using command line.
+
+3. For i), if you want to see the performance of different activation function,
+just type "python p6.py -g --activation [activation function]".
+Replace the [activation function] with "sigmoid", "tanh", "relu".
+
+Without specification of the activation function, the code will run in sigmoid
+activation function by default.
+
+Example: python p6.py -g --activation tanh
