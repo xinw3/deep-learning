@@ -15,7 +15,7 @@ epochs = 400     # 200
 eta = 0.01   # learning rate
 momentum = 0
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 400, '2': 16, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -657,7 +657,7 @@ def h():
             # Update weights['2']
             sgd(w2_gradient, b2_gradient, '2', eta)
             # Update weights['1']
-            sgd(w1_gradient, b1_gradient, '1', eta)\
+            sgd(w1_gradient, b1_gradient, '1', eta)
             # Update parameters of batch normalization
             gamma['2'] -= eta * gamma2_gradient
             gamma['1'] -= eta * gamma1_gradient
@@ -846,6 +846,18 @@ def cross_entropy(o, y):
 def get_l2_loss(avg_loss, weights, reg_lambda):
     return avg_loss + \
         reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
+
+def relu(x):
+    return np.maximum(x, 0, x)
+
+def relu_derivative(x):
+    return np.where(x > 0, 1, 0)
+
+def tanh(x):
+    return np.tanh(x)
+
+def tanh_derivative(x):
+    return 1 - tanh(x) ** 2
 
 def sigmoid(x):
     """
