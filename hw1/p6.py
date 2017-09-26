@@ -16,10 +16,12 @@ eta = 0.001   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 400, '2': 100, 'output':10}     # number of hidden units
+batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
 best_weights = {}
 biases = {}
+
 
 def a():
     """
@@ -39,7 +41,7 @@ def a():
     num_test_example = x_test.shape[0]
 
     layer_size['0'] = x_train.shape[1]
-    # Initialize weights(a dictionary holds all the weightss)
+    # Initialize parameters(a dictionary holds all the weightss)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['output'])   # (100, 10), (10, 1)
     w1_prev_gradient = np.zeros(weights['1'].shape)
@@ -501,12 +503,180 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
     plt.show()
 
 def h():
-    g()
+    '''
+        Two layer neural net with batch normalization
+    '''
+    # parameters of batch normalization
+    gamma = {}
+    beta = {}
+    eps = 1e-5
+    # Load Training Data (3000, 785)
+    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
+    # Load Validation Data (1000, 785)
+    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Load Test Data (3000, 785)
+    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
+    min_valid_error = sys.maxint
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+    num_test_example = x_test.shape[0]
+
+    num_features = x_train.shape[1]
+
+    layer_size['0'] = x_train.shape[1]
+    # Initialize parameters (a dictionary holds all the weightss)
+    weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
+    weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 100), (100, 1)
+    weights['3'], biases['3'] = init_params('3' ,layer_size['2'], layer_size['output'])   # (100, 10), (10, 1)
+    # batch normalization parameters
+    gamma['1'] = np.ones((layer_size['1'],))
+    gamma['2'] = np.ones((layer_size['2'],))
+    beta['1'] = np.zeros((layer_size['1'],))
+    beta['2'] = np.zeros((layer_size['2'],))
+
+    w1_prev_gradient = np.zeros(weights['1'].shape)
+    w2_prev_gradient = np.zeros(weights['2'].shape)
+    w3_prev_gradient = np.zeros(weights['3'].shape)
+
+    b1_prev_gradient = np.zeros(biases['1'].shape)
+    b2_prev_gradient = np.zeros(biases['2'].shape)
+    b3_prev_gradient = np.zeros(biases['3'].shape)
+
+    gamma1_prev_gradient = np.zeros(gamma['1'].shape)
+    gamma2_prev_gradient = np.zeros(gamma['2'].shape)
+
+    beta1_prev_gradient = np.zeros(beta['1'].shape)
+    beta2_prev_gradient = np.zeros(beta['2'].shape)
+
+    # Creat lists for containing the cross entropy errors
+    training_error_list = []
+    valid_error_list = []
+    test_error_list = []
+
+    # Creat lists for containing the classification errors
+    training_classify_error_list = []
+    valid_classify_error_list = []
+    test_classify_error_list = []
+
+    # Run epochs times
+    for e in range(epochs):
+        training_error = 0      # training cross entropy
+        valid_error = 0         # valid cross entropy
+        test_error = 0          # test error
+        training_classify_error = 0     # training classification error
+        valid_classify_error = 0        # valid classification error
+        test_classify_error = 0          # test classification error
+        i = 0
+        ''' Training '''
+        while i < num_training_example:
+            j = i + batch_size
+            # get x, y
+            if j < num_training_example:
+                x = np.transpose(x_train[i:j, :])    # (784, 32)
+                y = np.zeros((layer_size['output'], batch_size))    # (10, 32)
+                # get the indicator function y
+                for row in range(batch_size):
+                    label = int(y_train[i+row,0])
+                    y[row, label] = 1
+            else:
+                remaining_size = num_training_example - i
+                x = np.transpose(x_train[i:num_training_example, :])  # (784, 24) 24+93*32 = 3000
+                y = np.zeros((layer_size['output'], remaining_size))  # (10, 24)
+                # get the indicator function y
+                for row in range(remaining_size):
+                    label = int(y_train[i+row,0])
+                    y[row, label] = 1
+
+            ''' Forward training process '''
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 32)
+            b1, cache1 = batch_norm_forward(np.transpose(a1), gamma['1'], beta['1'], eps)    # b1 (32, 100)
+            h1 = sigmoid(np.transpose(b1))  # (100, 32)
+            a2 = feedforward(weights['2'], h1, biases['2']) # (100, 32)
+            b2, cache2 = batch_norm_forward(np.transpose(a2), gamma['2'], beta['2'], eps)    # b2 (32, 100)
+            h2 = sigmoid(np.transpose(b2))  # (100, 32)
+            a3 = feedforward(weights['3'], h2, biases['3']) # (10, 32)
+            o = softmax(a3)     # (10, 32)
+            training_error += cross_entropy(o, y)
+
+            ''' Backprops (compute the gradients) '''
+            # w3 gradient
+            loss_over_a3 = np.transpose(softmax_derivative(o, y))   # (32, 10)
+            w3_curr_gradient = np.dot(h2, loss_over_a3)   # 100*10
+            w3_gradient = get_gradient(w3_curr_gradient, w3_prev_gradient,\
+                                    momentum, reg_lambda, weights['3'])
+            # b3 gradient
+            b3_curr_gradient = np.sum(softmax_derivative(o, y), axis=1)    # (10, 1)
+            b3_gradient = get_gradient(b3_curr_gradient, b3_prev_gradient, \
+                                    momentum, 0, biases['3'])
+            # w2 gradient, weight decay
+            loss_over_h2 = np.dot(weights['3'], np.transpose(loss_over_a3))   # (100, 32)
+            loss_over_b2 = np.multiply(loss_over_h2, np.transpose(sigmoid_derivative(b2)))    #(100, 32)
+            b2_over_a2, b2_over_gamma2 = batch_norm_backward(b2, cache2)    #(32, 100)
+            b2_over_w2 = np.multiply(b2_over_a2, np.transpose(h1))  # (32, 100)
+
+            w2_curr_gradient = np.dot(loss_over_b2, b2_over_w2)     #(100, 100)
+            w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
+                                    momentum, reg_lambda, weights['2'])
+            # b2 gradient, no bias decay
+            loss_over_a2 = np.multiply(loss_over_b2, np.transpose(b2_over_a2))  # (100, 32)
+            b2_curr_gradient = np.sum(loss_over_a2, axis=1)     # (100, 1)
+            b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
+                                    momentum, 0, biases['2'])
+
+            # gamma2 gradient, add weight decay factor?
+            loss_over_gamma2 = np.multiply(loss_over_b2, b2_over_gamma2)  # (100, 32)
+            gamma2_curr_gradient = np.sum(loss_over_gamma2, axis=1)
+            gamma2_gradient = get_gradient(gamma2_curr_gradient, gamma2_prev_gradient, \
+                                    momentum, reg_lambda, gamma['2'])
+
+            # beta2 gradient, no weight decay
+            beta2_curr_gradient = np.sum(loss_over_b2, axis=1)  # (100, 1)
+            beta2_gradient = get_gradient(beta2_curr_gradient, beta2_prev_gradient, \
+                                    momentum, 0, beta['2'])
+
+            loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 32)
+            loss_over_b1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 32)
+            b1_over_a1, b1_over_gamma1 = batch_norm_backward(b1, cache1)    # (100, 32)
+            loss_over_a1 = np.multiply(loss_over_b1, b1_over_a1)    # (100, 32)
+
+            # w1 gradient, weight decay
+            w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))    # (784, 100)
+            w1_gradient = get_gradient(w1_curr_gradient, w1_prev_gradient, \
+                                    momentum, reg_lambda, weights['1'])
+
+            # b1 gradient, no bias decay
+            b1_curr_gradient = np.sum(loss_over_a1, axis=1)
+            b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
+                                    momentum, 0, biases['1'])
+
+            ''' SGD update parameters '''
+            # sgd update parameters
+            # Update weights['3']
+            sgd(w3_gradient, b3_gradient, '3', eta)
+            # Update weights['2']
+            sgd(w2_gradient, b2_gradient, '2', eta)
+            # Update weights['1']
+            sgd(w1_gradient, b1_gradient, '1', eta)
+            # update previous gradient parameters
+            w1_prev_gradient = w1_gradient
+            b1_prev_gradient = b1_gradient
+
+            w2_prev_gradient = w2_gradient
+            b2_prev_gradient = b2_gradient
+
+            w3_prev_gradient = w3_gradient
+            b3_prev_gradient = b3_gradient
+
+            gamma2_prev_gradient = gamma2_gradient
+
+
+
 
 def batch_norm_forward(x, gamma, beta, eps):
     """
         Input:
-            x: to be normalized inputs
+            x: to be normalized inputs. (N, D): N: batch_size, D: hidden units
         gamma: (D,)
          beta: (D,)
     """
@@ -525,19 +695,38 @@ def batch_norm_forward(x, gamma, beta, eps):
     # 6. invert denominator
     inverted_denominator = 1./denominator
     # 7. Normalize x
-    x_normalized = x_subtracted_mu * inverted_denominator
+    x_hat = x_subtracted_mu * inverted_denominator
     # 8. Get rx
-    gamma_times_x = gamma * x_normalized
+    gamma_x_hat = gamma * x_hat
     # 9. Output
-    out = gamma_times_x + beta
-
+    out = gamma_x_hat + beta
     #store intermediate
-    cache = (x_normalized, gamma, x_subtracted_mu,\
+    cache = (x_hat, gamma, x_subtracted_mu,\
             inverted_denominator,denominator,var,eps)
 
     return out, cache
 
-def batch_norm_backward(dout, cache):
+def batch_norm_backward(y, cache):
+    '''
+        Get partial derivatives of dy/dx, dy/dr, dy/db
+        Output:
+            y_over_x: dy/dx (N, D)
+        y_over_gamma: dy/dr (D, 1)
+    '''
+    (x_hat, gamma, x_subtracted_mu,\
+        inverted_denominator,denominator,var,eps) = cache
+    N,D = y.shape
+    xmu_mean = 1./N * np.sum(x_subtracted_mu, axis = 0)
+    d_denominator = (x_subtracted_mu) *
+    x_hat_over_x = inverted_denominator + (x_subtracted_mu) * xmu_mean * np.power(inverted_denominator, 3)
+    # dx
+    y = gamma * x_hat_over_x
+    # dgamma
+    y_over_gamma = np.sum(x_hat, axis=0).reshape(D, 1)
+    return y_over_x, y_over_gamma
+
+
+def batch_norm_backward_input_derivative(dout, cache):
     # Get the variables stored in forward process
     (x_normalized, gamma, x_subtracted_mu,\
         inverted_denominator,denominator,var,eps) = cache
@@ -550,7 +739,7 @@ def batch_norm_backward(dout, cache):
     d_gamma = np.sum(dgammax * x_normalized, axis=0)
     d_x_normalized = dgammax * gamma
     # 7.
-    d_inverted_denominator = np.sum(dxhat*xmu, axis=0)
+    d_inverted_denominator = np.sum(d_x_normalized * x_subtracted_mu, axis=0)
     dxmu1 = d_x_normalized * inverted_denominator
     # 6.
     d_denominator = -1. /(denominator ** 2) * d_inverted_denominator
@@ -572,7 +761,6 @@ def batch_norm_backward(dout, cache):
 
 
 def sgd(w_gradient, b_gradient, layer, eta):
-    # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
     weights[layer] -= eta * w_gradient
     biases[layer] -= eta * b_gradient
 
