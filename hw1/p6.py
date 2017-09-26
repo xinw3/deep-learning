@@ -15,7 +15,7 @@ epochs = 400     # 200
 eta = 0.001   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 400, '2': 100, 'output':10}     # number of hidden units
+layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -578,7 +578,7 @@ def h():
                 # get the indicator function y
                 for row in range(batch_size):
                     label = int(y_train[i+row,0])
-                    y[row, label] = 1
+                    y[label, row] = 1
             else:
                 remaining_size = num_training_example - i
                 x = np.transpose(x_train[i:num_training_example, :])  # (784, 24) 24+93*32 = 3000
@@ -586,7 +586,7 @@ def h():
                 # get the indicator function y
                 for row in range(remaining_size):
                     label = int(y_train[i+row,0])
-                    y[row, label] = 1
+                    y[label, row] = 1
 
             ''' Forward training process '''
             a1 = feedforward(weights['1'], x, biases['1'])  # (100, 32)
@@ -601,12 +601,13 @@ def h():
 
             ''' Backprops (compute the gradients) '''
             # w3 gradient
-            loss_over_a3 = np.transpose(softmax_derivative(o, y))   # (32, 10)
+            d_softmax_output = softmax_derivative(o, y)     # (32, 10)
+            loss_over_a3 = np.transpose(d_softmax_output)   # (32, 10)
             w3_curr_gradient = np.dot(h2, loss_over_a3)   # 100*10
             w3_gradient = get_gradient(w3_curr_gradient, w3_prev_gradient,\
                                     momentum, reg_lambda, weights['3'])
             # b3 gradient
-            b3_curr_gradient = np.sum(softmax_derivative(o, y), axis=1)    # (10, 1)
+            b3_curr_gradient = np.sum(d_softmax_output, axis=1).reshape(biases['3'].shape)    # (10, 1)
             b3_gradient = get_gradient(b3_curr_gradient, b3_prev_gradient, \
                                     momentum, 0, biases['3'])
             # w2 gradient, weight decay
@@ -620,7 +621,7 @@ def h():
                                     momentum, reg_lambda, weights['2'])
             # b2 gradient, no bias decay
             loss_over_a2 = np.multiply(loss_over_b2, np.transpose(b2_over_a2))  # (100, 32)
-            b2_curr_gradient = np.sum(loss_over_a2, axis=1)     # (100, 1)
+            b2_curr_gradient = np.sum(loss_over_a2, axis=1).reshape(biases['2'].shape)     # (100, 1)
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
                                     momentum, 0, biases['2'])
 
@@ -638,7 +639,7 @@ def h():
             loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 32)
             loss_over_b1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 32)
             b1_over_a1, b1_over_gamma1 = batch_norm_backward(b1, cache1)    # (100, 32), (100, 1)
-            loss_over_a1 = np.multiply(loss_over_b1, b1_over_a1)    # (100, 32)
+            loss_over_a1 = np.multiply(loss_over_b1, np.transpose(b1_over_a1))    # (100, 32)
 
             # w1 gradient, weight decay
             w1_curr_gradient = np.dot(x, np.transpose(loss_over_a1))    # (784, 100)
@@ -646,7 +647,7 @@ def h():
                                     momentum, reg_lambda, weights['1'])
 
             # b1 gradient, no bias decay
-            b1_curr_gradient = np.sum(loss_over_a1, axis=1)
+            b1_curr_gradient = np.sum(loss_over_a1, axis=1).reshape(biases['1'].shape)
             b1_gradient = get_gradient(b1_curr_gradient, b1_prev_gradient, \
                                     momentum, 0, biases['1'])
 
@@ -687,7 +688,9 @@ def h():
 
             beta2_prev_gradient = beta2_gradient
             beta1_prev_gradient = beta1_gradient
-
+        training_error_avg = training_error / num_training_example
+        print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s, valid_error = %s\n" \
+            % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg)
 
 def batch_norm_forward(x, gamma, beta, eps):
     """
@@ -703,7 +706,7 @@ def batch_norm_forward(x, gamma, beta, eps):
     # 2. subtract mean vector of every trainings example
     x_subtracted_mu = x - mu
     # 3. following the lower branch - calculation denominator
-    x_subtracted_mu_squared = xmu ** 2
+    x_subtracted_mu_squared = x_subtracted_mu ** 2
     # 4. mini-batch variance
     var = 1./N * np.sum(x_subtracted_mu_squared, axis = 0)
     # 5. get denominator of normalized x
@@ -732,11 +735,10 @@ def batch_norm_backward(y, cache):
     (x_hat, gamma, x_subtracted_mu,\
         inverted_denominator,denominator,var,eps) = cache
     N,D = y.shape
-    xmu_mean = 1./N * np.sum(x_subtracted_mu, axis = 0)
-    d_denominator = (x_subtracted_mu) *
+    xmu_mean = -1./N * np.sum(x_subtracted_mu, axis = 0)
     x_hat_over_x = inverted_denominator + (x_subtracted_mu) * xmu_mean * np.power(inverted_denominator, 3)
     # dx
-    y = gamma * x_hat_over_x
+    y_over_x = gamma * x_hat_over_x
     # dgamma
     y_over_gamma = np.sum(x_hat, axis=0).reshape(D, 1)
     return y_over_x, y_over_gamma
