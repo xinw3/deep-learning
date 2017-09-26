@@ -15,7 +15,7 @@ epochs = 400     # 200
 eta = 0.01   # learning rate
 momentum = 0
 reg_lambda = 0.0001 # regularization strength
-layer_size = {'1': 16, '2': 16, 'output':10}     # number of hidden units
+layer_size = {'1': 400, '2': 16, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
@@ -778,41 +778,6 @@ def batch_norm_backward(y, cache):
     # dgamma
     y_over_gamma = np.sum(x_hat, axis=0).reshape(D, 1)
     return y_over_x, y_over_gamma
-
-
-def batch_norm_backward_input_derivative(dout, cache):
-    # Get the variables stored in forward process
-    (x_normalized, gamma, x_subtracted_mu,\
-        inverted_denominator,denominator,var,eps) = cache
-    # Get the dimensions of the input/output
-    N,D = dout.shape
-    # 9.
-    d_beta = np.sum(dout, axis=0)
-    d_gammax = dout #not necessary, but more understandable
-    # 8.
-    d_gamma = np.sum(dgammax * x_normalized, axis=0)
-    d_x_normalized = dgammax * gamma
-    # 7.
-    d_inverted_denominator = np.sum(d_x_normalized * x_subtracted_mu, axis=0)
-    dxmu1 = d_x_normalized * inverted_denominator
-    # 6.
-    d_denominator = -1. /(denominator ** 2) * d_inverted_denominator
-    # 5.
-    dvar = 0.5 * 1. /np.sqrt(var+eps) * d_denominator
-    # 4.
-    d_x_subtracted_mu_squared = 1. /N * np.ones((N,D)) * dvar
-    # 3.
-    dxmu2 = 2 * x_subtracted_mu * d_x_subtracted_mu_squared
-    # 2.
-    dx1 = (dxmu1 + dxmu2)
-    dmu = -1 * np.sum(dxmu1+dxmu2, axis=0)
-    # 1.
-    dx2 = 1. /N * np.ones((N,D)) * dmu
-    # 0.
-    dx = dx1 + dx2
-
-    return dx, d_gamma, d_beta
-
 
 def sgd(w_gradient, b_gradient, layer, eta):
     weights[layer] -= eta * w_gradient
