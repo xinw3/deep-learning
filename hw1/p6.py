@@ -500,6 +500,43 @@ training_classify_error = %s%%, valid_classify_error = %s%%, test_error = %s%% #
 
     plt.show()
 
+def h():
+    g()
+
+def batch_norm_forward(x, gamma, beta, eps):
+    """
+        Input:
+            x: to be normalized inputs
+        gamma:
+    """
+
+    N, D = x.shape
+    # 1. mini-batch mean
+    mu = 1./N * np.sum(x, axis = 0)
+    # 2. subtract mean vector of every trainings example
+    x_subtracted_mu = x - mu
+    # 3. following the lower branch - calculation denominator
+    x_subtracted_mu_squared = xmu ** 2
+    # 4. mini-batch variance
+    var = 1./N * np.sum(x_subtracted_mu_squared, axis = 0)
+    # 5. get denominator of normalized x
+    denominator = np.sqrt(var + eps)
+    # 6. invert denominator
+    inverted_denominator = 1./denominator
+    # 7. Normalize x
+    x_normalized = x_subtracted_mu * inverted_denominator
+    # 8. Get rx
+    gamma_times_x = gamma * x_normalized
+    # 9. Output
+    output = gammax + beta
+
+    #store intermediate
+    cache = (x_normalized, gamma, x_subtracted_mu,\
+            inverted_denominator,denominator,var,eps)
+
+    return output, cache
+
+
 def sgd(w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
     weights[layer] -= eta * w_gradient
@@ -628,6 +665,6 @@ def load_data(data_file):
 # print softmax(b)
 
 # Function chooser
-func_arg = {"-a": a, "-b": b, "-c": c, "-g": g}
+func_arg = {"-a": a, "-b": b, "-c": c, "-g": g, "-h": h}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
