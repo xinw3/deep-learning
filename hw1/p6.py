@@ -13,7 +13,7 @@ test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 400     # 200
 eta = 0.001   # learning rate
-momentum = 0.5
+momentum = 0
 reg_lambda = 0.0001 # regularization strength
 layer_size = {'1': 100, '2': 100, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
@@ -567,25 +567,26 @@ def h():
         training_classify_error = 0     # training classification error
         valid_classify_error = 0        # valid classification error
         test_classify_error = 0          # test classification error
-        i = 0
+        i_train = 0
+        i_valid = 0
         ''' Training '''
-        while i < num_training_example:
-            j = i + batch_size
+        while i_train < num_training_example:
+            j_train = i_train + batch_size
             # get x, y
-            if j < num_training_example:
-                x = np.transpose(x_train[i:j, :])    # (784, 32)
+            if j_train < num_training_example:
+                x = np.transpose(x_train[i_train:j_train, :])    # (784, 32)
                 y = np.zeros((layer_size['output'], batch_size))    # (10, 32)
                 # get the indicator function y
                 for row in range(batch_size):
-                    label = int(y_train[i+row,0])
+                    label = int(y_train[i_train+row,0])
                     y[label, row] = 1
             else:
-                remaining_size = num_training_example - i
-                x = np.transpose(x_train[i:num_training_example, :])  # (784, 24) 24+93*32 = 3000
+                remaining_size = num_training_example - i_train
+                x = np.transpose(x_train[i_train:num_training_example, :])  # (784, 24) 24+93*32 = 3000
                 y = np.zeros((layer_size['output'], remaining_size))  # (10, 24)
                 # get the indicator function y
                 for row in range(remaining_size):
-                    label = int(y_train[i+row,0])
+                    label = int(y_train[i_train+row,0])
                     y[label, row] = 1
 
             ''' Forward training process '''
@@ -689,10 +690,41 @@ def h():
             beta2_prev_gradient = beta2_gradient
             beta1_prev_gradient = beta1_gradient
             # update counter
-            i = j
+            i_train = j_train
+        ''' Validation '''
+        while i_valid < num_valid_example:
+            j_valid = i_valid + batch_size
+            if j_valid < num_valid_example:
+                x = np.transpose(x_valid[i_valid:j_valid, :])    # (784, 32)
+                y = np.zeros((layer_size['output'], batch_size))    # (10, 32)
+                # get the indicator function y
+                for row in range(batch_size):
+                    label = int(y_valid[i_valid+row,0])
+                    y[label, row] = 1
+            else:
+                remaining_size = num_valid_example - i_valid
+                x = np.transpose(x_valid[i_valid:num_valid_example, :])  # (784, 24) 24+93*32 = 3000
+                y = np.zeros((layer_size['output'], remaining_size))  # (10, 24)
+                # get the indicator function y
+                for row in range(remaining_size):
+                    label = int(y_valid[i_valid+row,0])
+                    y[label, row] = 1
+
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 32)
+            b1, cache1 = batch_norm_forward(np.transpose(a1), gamma['1'], beta['1'], eps)    # b1 (32, 100)
+            h1 = sigmoid(np.transpose(b1))  # (100, 32)
+            a2 = feedforward(weights['2'], h1, biases['2']) # (100, 32)
+            b2, cache2 = batch_norm_forward(np.transpose(a2), gamma['2'], beta['2'], eps)    # b2 (32, 100)
+            h2 = sigmoid(np.transpose(b2))  # (100, 32)
+            a3 = feedforward(weights['3'], h2, biases['3']) # (10, 32)
+            o = softmax(a3)     # (10, 32)
+            valid_error += cross_entropy(o, y)
+            i_valid = j_valid
+
+        valid_error_avg = valid_error / num_valid_example
         training_error_avg = training_error / num_training_example
-        print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s\n" \
-            % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg)
+        print "##### Epoch %s ######\n epoch=%s, momentum=%s, eta=%s, lambda=%s, hidden1=%s, hidden2=%s\n training_error = %s, valid_error = %s\n" \
+            % (e + 1, epochs, momentum, eta, reg_lambda, layer_size['1'],layer_size['2'], training_error_avg, valid_error_avg)
 
 def batch_norm_forward(x, gamma, beta, eps):
     """
