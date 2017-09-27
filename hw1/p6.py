@@ -12,10 +12,10 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 100     # 200
-eta = 0.001   # learning rate
-momentum = 0.5
+eta = 0.01   # learning rate
+momentum = 0
 reg_lambda = 1e-3 # regularization strength
-layer_size = {'1': 100, '2': 16, 'output':10}     # number of hidden units
+layer_size = {'1': 400, '2': 16, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
 weights = {}
