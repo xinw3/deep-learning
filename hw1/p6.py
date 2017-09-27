@@ -12,9 +12,9 @@ validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
 epochs = 100     # 200
-eta = 0.01   # learning rate
+eta = 0.001   # learning rate
 momentum = 0.5
-reg_lambda = 0.0001 # regularization strength
+reg_lambda = 1e-3 # regularization strength
 layer_size = {'1': 100, '2': 16, 'output':10}     # number of hidden units
 batch_size = 32     # batch size for batch normalization
 # Parameter dictionaries
@@ -596,7 +596,7 @@ def h():
 
             ''' Backprops (compute the gradients) '''
             # w3 gradient
-            d_softmax_output = softmax_derivative(o, y)     # (32, 10)
+            d_softmax_output = softmax_derivative(o, y)     # (10, 32)
             loss_over_a3 = np.transpose(d_softmax_output)   # (32, 10)
             w3_curr_gradient = np.dot(h2, loss_over_a3)   # 100*10
             w3_gradient = get_gradient(w3_curr_gradient, w3_prev_gradient,\
@@ -616,8 +616,7 @@ def h():
             w2_gradient = get_gradient(w2_curr_gradient, w2_prev_gradient, \
                                     momentum, reg_lambda, weights['2'])
             # b2 gradient, no bias decay
-            loss_over_a2 = np.multiply(loss_over_b2, np.transpose(b2_over_a2))  # (100, 32)
-            b2_curr_gradient = np.sum(loss_over_a2, axis=1).reshape(biases['2'].shape)     # (100, 1)
+            b2_curr_gradient = np.sum(loss_over_a2, axis=0).reshape(biases['2'].shape)     # (100, 1)
             b2_gradient = get_gradient(b2_curr_gradient, b2_prev_gradient, \
                                     momentum, 0, biases['2'])
 
@@ -632,8 +631,8 @@ def h():
             beta2_gradient = get_gradient(beta2_curr_gradient, beta2_prev_gradient, \
                                     momentum, 0, beta['2'])
 
-            loss_over_h1 = np.dot(weights['2'], loss_over_a2)   # (100, 32)
-            loss_over_b1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 32)
+            loss_over_h1 = np.dot(weights['2'], np.transpose(loss_over_a2))   # (100, 32)
+            loss_over_b1 = np.multiply(loss_over_h1, np.transpose(sigmoid_derivative(b1)))    #(100, 32)
             b1_over_a1, b1_over_gamma1 = batch_norm_backward(b1, cache1)    # (100, 32), (100, 1)
             loss_over_a1 = np.multiply(loss_over_b1, np.transpose(b1_over_a1))    # (100, 32)
 
