@@ -11,7 +11,7 @@ training_set = "./data/digitstrain.txt"
 validation_set = "./data/digitsvalid.txt"
 test_set = "./data/digitstest.txt"
 # Tunable parameters
-epochs = 200     # 200
+epochs = 100     # 200
 eta = 0.01   # learning rate
 momentum = 0.5
 reg_lambda = 0.0001 # regularization strength
@@ -68,6 +68,8 @@ def a():
             a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
             o = softmax(a2)     # (10, 1)
             training_error += cross_entropy(o, y)
+            training_error = get_l2_loss(training_error, weights, reg_lambda)
+
             # Update weights['1']
             loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
@@ -123,9 +125,7 @@ def a():
             o = softmax(a2)     # (10, 1)
             test_error += cross_entropy(o, y)
 
-        # Add regularizer
         training_error_avg = training_error / num_training_example
-        training_error_avg = get_l2_loss(training_error_avg, weights, reg_lambda)
 
         valid_error_avg = valid_error / num_valid_example
         test_error_avg = test_error / num_test_example
@@ -356,6 +356,7 @@ def g():
             a3 = feedforward(weights['3'], h2, biases['3']) # (10, 1)
             o = softmax(a3)     # (10, 1)
             training_error += cross_entropy(o, y)
+            training_error = get_l2_loss(training_error, weights, reg_lambda)
             training_classify_error += classification_error(o, label)
 
             ''' Backprops (compute the gradients) '''
@@ -439,9 +440,7 @@ def g():
             test_error += cross_entropy(o, y)
             test_classify_error += classification_error(o, label)
 
-        # Add regularizer cross entropy
         training_error_avg = training_error / num_training_example
-        training_error_avg = get_l2_loss(training_error_avg, weights, reg_lambda)
 
         valid_error_avg = valid_error / num_valid_example
         test_error_avg = test_error / num_test_example
@@ -590,7 +589,10 @@ def h():
             h2 = sigmoid(np.transpose(b2))  # (100, 32)
             a3 = feedforward(weights['3'], h2, biases['3']) # (10, 32)
             o = softmax(a3)     # (10, 32)
+            # Regularized loss
             training_error += cross_entropy(o, y)
+            training_error = get_l2_loss(training_error, weights, reg_lambda)
+
 
             ''' Backprops (compute the gradients) '''
             # w3 gradient
@@ -714,8 +716,9 @@ def h():
             valid_error += cross_entropy(o, y)
             i_valid = j_valid
 
-        valid_error_avg = valid_error / num_valid_example
+
         training_error_avg = training_error / num_training_example
+        valid_error_avg = valid_error / num_valid_example
         # cross entropy error lists
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
@@ -847,9 +850,12 @@ def cross_entropy(o, y):
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
 
 # loss function with regularization factor
-def get_l2_loss(avg_loss, weights, reg_lambda):
-    return avg_loss + \
-        reg_lambda/2 * (np.sum(np.square(weights['1'])) + np.sum(np.square(weights['2'])))
+def get_l2_loss(unreg_loss, weights, reg_lambda):
+    regularized_term = 0
+    for i in range(len(weights)):
+        regularized_term += np.sum(np.square(weights[str(i+1)]))
+
+    return unreg_loss + reg_lambda/2 * regularized_term
 
 def activation(x):
     if len(sys.argv) >= 3:
