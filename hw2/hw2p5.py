@@ -9,6 +9,7 @@ training_set = "../mnist_data/digitstrain.txt"
 validation_set = "../mnist_data/digitsvalid.txt"
 test_set = "../mnist_data/digitstest.txt"
 
+cd_steps = 1
 
 def a():
     '''
@@ -30,7 +31,7 @@ def a():
             plt.subplot(10, 10, count)
             plt.xticks([])
             plt.yticks([])
-            plt.imshow(np.reshape(np.ravel(x_test[count, :], order='F'),(28,28)), cmap='gray', origin='lower')
+            plt.imshow(x_test[count, :].reshape((28,28)), cmap='gray', origin='lower')
             count += 1
     plt.show()
 
@@ -43,7 +44,6 @@ def load_data(data_file):
     np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
-    print "row=%s, col=%s" % (row, col)
 
     x = data_array[:,:col - 1]
     y = data_array[:, col - 1].reshape(row, 1)
