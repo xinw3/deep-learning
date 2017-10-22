@@ -7,9 +7,9 @@ import matplotlib.cm as cm
 from scipy.special import expit
 
 # Data sets
-training_set = "./data/digitstrain.txt"
-validation_set = "./data/digitsvalid.txt"
-test_set = "./data/digitstest.txt"
+training_set = "../mnist_data/digitstrain.txt"
+validation_set = "../mnist_data/digitsvalid.txt"
+test_set = "../mnist_data/digitstest.txt"
 # Tunable parameters
 epochs = 100     # 200
 eta = 0.01   # learning rate
