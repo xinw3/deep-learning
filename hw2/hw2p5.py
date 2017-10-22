@@ -19,7 +19,7 @@ def a():
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
     # Load Test Data (3000, 785)
-    # x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
+    x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
 
     fig, axs = plt.subplots(10, 10)
     # Remove horizontal space between axes
@@ -30,7 +30,7 @@ def a():
             plt.subplot(10, 10, count)
             plt.xticks([])
             plt.yticks([])
-            plt.imshow(x_valid[count, :].reshape((28,28)), cmap='gray', origin='lower')
+            plt.imshow(np.reshape(np.ravel(x_test[count, :], order='F'),(28,28)), cmap='gray', origin='lower')
             count += 1
     plt.show()
 
