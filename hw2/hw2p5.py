@@ -54,8 +54,9 @@ def a():
             pos_hid = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
             pos_mean = -1 * np.dot(x, pos_hid.T)    # (input, hidden_units)
 
-            # TODO: negative phase
+            # negative phase
             h_tilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
+            neg_mean = -1 * np.dot(x_tilde, h_tilde.T)
             # Draw a sample h_tilde from the probability distribution p(h|x)
 
 
@@ -77,7 +78,7 @@ def gibbs_sampling(vis, hidbias, visbias, steps, weights):
         # calculate p(x~|h)
         prob_x_given_h = update_visible(h_tilde, visbias, weights)
         # sample x~ from the probs above (binomial distribution)
-        x_tilde = np.random.binomial(num_input, prob_x_given_h, (prob_x_given_h, 1))
+        x_tilde = np.random.binomial(num_input, prob_x_given_h, (num_input, 1))
 
     return h_tilde, x_tilde
 
