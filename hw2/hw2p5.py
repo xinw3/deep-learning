@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 5
+epochs = 500
 eta = 0.01   # learning rate
 
 # parameters of normal distribution in weights initialization
@@ -49,7 +49,7 @@ def a():
         valid_recon_error = 0
         ''' Training '''
         for i in range(num_training_example):
-            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            x = x_train[i, :].reshape(num_input, 1)    # (784, 1)
             # positive phase
             h = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
             pos_mean = -1 * np.dot(x, h.T)    # (input, hidden_units)
@@ -71,7 +71,7 @@ def a():
 
         ''' Validation '''
         for i in range(num_valid_example):
-            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
+            x = x_valid[i, :].reshape(num_input, 1)    # (784, 1)
 
             # get cross entropy reconstruction error
             h_recon = update_hidden(x, hidbias, weights)
@@ -124,13 +124,20 @@ def gibbs_sampling(vis, hidbias, visbias, steps, weights):
 
     return h_tilde, x_tilde
 
+def get_binary_values(probs):
+    samples = np.random.uniform(size=probs.shape)
+    probs[samples < probs] = 1.
+    # set any other non-1 values to 0
+    np.floor(probs, probs)
+    return probs
+
 
 def update_visible(hid, visbias, weights):
     '''
         Update visible units
         output sigmoid values
     '''
-    vis = np.dot(weights, hid)
+    vis = np.dot(weights, hid)      # (input, 1)
     vis += visbias
     vis = sigmoid(vis)
 
