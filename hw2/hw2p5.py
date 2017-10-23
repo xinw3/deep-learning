@@ -51,15 +51,35 @@ def a():
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             # positive phase
-            hid = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
-            pos_mean = -1 * np.dot(x, hid.T)    # (input, hidden_units)
+            pos_hid = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            pos_mean = -1 * np.dot(x, pos_hid.T)    # (input, hidden_units)
 
             # TODO: negative phase
-            # Compute p(h|x)
+            h_tilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
             # Draw a sample h_tilde from the probability distribution p(h|x)
 
 
-def gibbs_sampling():
+def gibbs_sampling(vis, hidbias, visbias, steps, weights):
+    '''
+        Perform steps iterations of Gibbs Sampling
+        Output:
+            h_tilde: sampled hidden units binary values
+            x_tilde: sampled x~ binary values
+    '''
+    # calculate p(h|x~)
+    x_tilde = vis
+    num_input = vis.shape[0]
+    # Constrastive Divergence steps
+    for i in range(steps):
+        prob_h_given_x = update_hidden(x_tilde, hidbias, weights)
+        # sample h~ from the probs above (binomial distribution)
+        h_tilde = np.random.binomial(num_hidden_units, prob_h_given_x, (num_hidden_units, 1))
+        # calculate p(x~|h)
+        prob_x_given_h = update_visible(h_tilde, visbias, weights)
+        # sample x~ from the probs above (binomial distribution)
+        x_tilde = np.random.binomial(num_input, prob_x_given_h, (prob_x_given_h, 1))
+
+    return h_tilde, x_tilde
 
 
 def update_visible(hid, visbias, weights):
