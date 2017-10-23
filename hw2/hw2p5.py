@@ -51,14 +51,20 @@ def a():
         for i in range(num_training_example):
             x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
             # positive phase
-            pos_hid = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
-            pos_mean = -1 * np.dot(x, pos_hid.T)    # (input, hidden_units)
+            h = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            pos_mean = -1 * np.dot(x, h.T)    # (input, hidden_units)
 
             # negative phase
             h_tilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
             neg_mean = -1 * np.dot(x_tilde, h_tilde.T)
-            # Draw a sample h_tilde from the probability distribution p(h|x)
 
+            # compute gradient
+            weights -= eta * get_gradient(pos_mean, neg_mean)
+            hidbias -= eta * get_gradient(-1 * h, -1 * h_tilde)
+            visbias -= eta * get_gradient(-1 * x, -1 * x_tilde)
+
+def get_gradient(pos, neg):
+    return pos - neg
 
 def gibbs_sampling(vis, hidbias, visbias, steps, weights):
     '''
