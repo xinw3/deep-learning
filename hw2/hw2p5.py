@@ -13,8 +13,8 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 100
-eta = 0.1   # learning rate
+epochs = 5
+eta = 0.01   # learning rate
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
@@ -69,10 +69,24 @@ def a():
 
             train_recon_error += cross_entropy(x_recon, x)
 
-            # TODO: same process for the validation set
+        ''' Validation '''
+        for i in range(num_valid_example):
+            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
+
+            # get cross entropy reconstruction error
+            h_recon = update_hidden(x, hidbias, weights)
+            x_recon = update_visible(h_recon, visbias, weights)
+
+            valid_recon_error += cross_entropy(x_recon, x)
+
 
         train_recon_error_avg = train_recon_error / num_training_example
         train_recon_error_list.append(train_recon_error_avg)
+
+        valid_recon_error_avg = valid_recon_error / num_valid_example
+        valid_recon_error_list.append(valid_recon_error_avg)
+        print "##### Epoch %s ######\n epoch=%s, eta=%s, hidden_units=%s\n training_error = %s valid_error=%s\n" \
+            % (e + 1, epochs, eta, num_hidden_units, train_recon_error_avg, valid_recon_error_avg)
 # Calculate cross entropy
 def cross_entropy(o, y):
     """
@@ -82,7 +96,7 @@ def cross_entropy(o, y):
         Output:
             cross entropy of this example
     """
-    bias = np.power(10, -10)
+    bias = 0
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
 
 def get_gradient(pos, neg):
