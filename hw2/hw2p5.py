@@ -63,6 +63,28 @@ def a():
             hidbias -= eta * get_gradient(-1 * h, -1 * h_tilde)
             visbias -= eta * get_gradient(-1 * x, -1 * x_tilde)
 
+            # get cross entropy reconstruction error
+            h_recon = update_hidden(x, hidbias, weights)
+            x_recon = update_visible(h_recon, visbias, weights)
+
+            train_recon_error += cross_entropy(x_recon, x)
+
+            # TODO: same process for the validation set
+
+        train_recon_error_avg = train_recon_error / num_training_example
+        train_recon_error_list.append(train_recon_error_avg)
+# Calculate cross entropy
+def cross_entropy(o, y):
+    """
+        Input:
+            o: output of the model
+            y: desired output (original input)
+        Output:
+            cross entropy of this example
+    """
+    bias = np.power(10, -10)
+    return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
+
 def get_gradient(pos, neg):
     return pos - neg
 
