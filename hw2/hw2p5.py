@@ -9,7 +9,13 @@ training_set = "../mnist_data/digitstrain.txt"
 validation_set = "../mnist_data/digitsvalid.txt"
 test_set = "../mnist_data/digitstest.txt"
 
-cd_steps = 1
+# tunable parameters
+cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
+num_hidden_units = 100  # number of hidden units
+
+# parameters of normal distribution in weights initialization
+mean = 0    # mean
+stddev = 0.1    # standard deviation
 
 def a():
     '''
@@ -22,18 +28,37 @@ def a():
     # Load Test Data (3000, 785)
     x_test, y_test = load_data(test_set)            # (3000, 784), (3000, 1)
 
-    fig, axs = plt.subplots(10, 10)
-    # Remove horizontal space between axes
-    fig.subplots_adjust(wspace=0, hspace=0)
-    count = 0
-    for i in range(10):
-        for j in range(10):
-            plt.subplot(10, 10, count)
-            plt.xticks([])
-            plt.yticks([])
-            plt.imshow(x_test[count, :].reshape((28,28)), cmap='gray', origin='lower')
-            count += 1
-    plt.show()
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+    num_test_example = x_test.shape[0]
+
+    num_input = x_train.shape[1]
+    num_hidden = num_hidden_units
+
+    weights, visbias, hidbias = \
+            init_params(mean, stddev, num_input, num_hidden)
+
+
+    print weights.shape, visbias.shape, hidbias.shape
+
+# Initialize weights
+def init_params(mean, stddev, size_k_1, size_k):
+    """
+        Sample weights from normal distribution with mean 0 stddev 0.1
+        Input:
+            weights, biases: the parameters to be initialized
+            mean: the mean of the normal distribution (default 0)
+            stddev: the standard deviation of normal distribution (default 0.1)
+            size_k_1, size_k: sizes of layer k-1(input) and k(hidden)
+        Ouput:
+            weights: matrix of initialized weights: size_k_1 * size_k
+            biases: biases terms of size_k
+    """
+    weights = np.random.normal(mean, stddev, (size_k_1, size_k))
+    visbias = np.zeros((size_k_1, 1))
+    hidbias = np.zeros((size_k, 1))
+    return weights, visbias, hidbias
 
 def load_data(data_file):
     """
