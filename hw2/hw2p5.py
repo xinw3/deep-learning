@@ -116,11 +116,11 @@ def gibbs_sampling(vis, hidbias, visbias, steps, weights):
     for i in range(steps):
         prob_h_given_x = update_hidden(x_tilde, hidbias, weights)
         # sample h~ from the probs above (binomial distribution)
-        h_tilde = np.random.binomial(num_hidden_units, prob_h_given_x, (num_hidden_units, 1))
+        h_tilde = get_binary_values(prob_h_given_x)
         # calculate p(x~|h)
         prob_x_given_h = update_visible(h_tilde, visbias, weights)
         # sample x~ from the probs above (binomial distribution)
-        x_tilde = np.random.binomial(num_input, prob_x_given_h, (num_input, 1))
+        x_tilde = get_binary_values(prob_x_given_h)
 
     return h_tilde, x_tilde
 
