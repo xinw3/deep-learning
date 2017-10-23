@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import expit
 
 
 # Data sets
@@ -12,6 +13,8 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
+epochs = 100
+eta = 0.1   # learning rate
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
@@ -39,21 +42,68 @@ def a():
     weights, visbias, hidbias = \
             init_params(mean, stddev, num_input, num_hidden)
 
+    train_recon_error_list = []
+    valid_recon_error_list = []
+    for e in range(epochs):
+        train_recon_error = 0
+        valid_recon_error = 0
+        ''' Training '''
+        for i in range(num_training_example):
+            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            # positive phase
+            hid = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            pos_mean = -1 * np.dot(x, hid.T)    # (input, hidden_units)
 
-    print weights.shape, visbias.shape, hidbias.shape
+            # TODO: negative phase
+            # Compute p(h|x)
+            # Draw a sample h_tilde from the probability distribution p(h|x)
+
+
+def gibbs_sampling():
+
+
+def update_visible(hid, visbias, weights):
+    '''
+        Update visible units
+        output sigmoid values
+    '''
+    vis = np.dot(weights, hid)
+    vis += visbias
+    vis = sigmoid(vis)
+
+    return vis
+
+def update_hidden(vis, hidbias, weights):
+    '''
+        Update hidden units
+        output the sigmoid values (hidden_units, 1)
+    '''
+    hid = np.dot(weights.T, vis)    # (hidden_units, 1)
+    hid += hidbias
+    hid = sigmoid(hid)
+
+    return hid
+
+
+def sigmoid(x):
+    """
+        Compute sigmoid function:
+        return 1/(1 + exp(-x))
+    """
+    return expit(x)
 
 # Initialize weights
 def init_params(mean, stddev, size_k_1, size_k):
     """
         Sample weights from normal distribution with mean 0 stddev 0.1
         Input:
-            weights, biases: the parameters to be initialized
             mean: the mean of the normal distribution (default 0)
             stddev: the standard deviation of normal distribution (default 0.1)
             size_k_1, size_k: sizes of layer k-1(input) and k(hidden)
         Ouput:
             weights: matrix of initialized weights: size_k_1 * size_k
-            biases: biases terms of size_k
+            visbias: bias for input layer, (size_k_1, 1)
+            hidbias: bias for hidden layer, (size_k, 1)
     """
     weights = np.random.normal(mean, stddev, (size_k_1, size_k))
     visbias = np.zeros((size_k_1, 1))
