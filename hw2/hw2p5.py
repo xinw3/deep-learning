@@ -21,11 +21,14 @@ mini_batch = 10
 mean = 0    # mean
 stddev = 0.1    # standard deviation
 
+# other global variables used
+best_weights = []
+
 def a():
     '''
         Basic Generalization
     '''
-    lr = 0.1
+    global lr
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -82,9 +85,6 @@ def a():
             # update counter
             i_train = j_train
 
-        if (e+1) % 100 == 0: # decrease learning rate every 10 epochs
-            lr /= 2
-
 
         ''' Validation '''
         while i_valid < num_valid_example:
@@ -140,6 +140,16 @@ def a():
             count += 1
 
     plt.show()
+
+def d():
+    """
+        Unsupervised Learning as Pretraining
+    """
+    # Load Training Data (3000, 785)
+    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
+    # Load Validation Data (1000, 785)
+    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+
 
 # Calculate cross entropy
 def cross_entropy(o, y):
