@@ -14,7 +14,7 @@ test_set = "../mnist_data/digitstest.txt"
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
 epochs = 1000
-lr = 0.1   # learning rate
+lr = 0.01   # learning rate
 mini_batch = 10
 
 # parameters of normal distribution in weights initialization
@@ -82,8 +82,9 @@ def a():
             # update counter
             i_train = j_train
 
-        if e % 100 == 0: # decrease learning rate every 10 epochs
+        if (e+1) % 100 == 0: # decrease learning rate every 10 epochs
             lr /= 2
+
 
         ''' Validation '''
         while i_valid < num_valid_example:
@@ -106,9 +107,11 @@ def a():
 
         valid_recon_error_avg = valid_recon_error / num_valid_example
         valid_recon_error_list.append(valid_recon_error_avg)
-        print "##### Epoch %s ######\n epoch=%s, eta=%s, hidden_units=%s, batch_size=%s\n \
-                training_error = %s valid_error=%s\n" \
-            % (e + 1, epochs, eta, num_hidden_units, mini_batch, train_recon_error_avg, valid_recon_error_avg)
+        print "##### Epoch %s ######\n \
+            epoch=%s, eta=%s, hidden_units=%s, batch_size=%s, cd_steps=%s\n \
+            training_error = %s valid_error=%s\n" \
+            % (e + 1, epochs, eta, num_hidden_units, mini_batch, cd_steps, \
+                train_recon_error_avg, valid_recon_error_avg)
 
     ''' Visualization '''
     # Cross Entropy
@@ -117,8 +120,9 @@ def a():
     plt.ylabel("error")
     plt.plot(train_recon_error_list, label='training error')
     plt.plot(valid_recon_error_list, label='valid error')
-    plt.title('Cross Entropy Reconstruction Error\n (learning rate=%s, hidden_units=%s)'\
-            % (eta, num_hidden_units))
+    plt.title('Cross Entropy Reconstruction Error\n \
+            (learning rate=%s, hidden_units=%s, batch_size=%s, cd_steps=%s)'\
+            % (eta, num_hidden_units, mini_batch, cd_steps))
     plt.legend()
 
     # weights
@@ -132,7 +136,7 @@ def a():
             plt.subplot(num_pictures, num_pictures, count)
             plt.xticks([])
             plt.yticks([])
-            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3, 3), origin='lower')
             count += 1
 
     plt.show()
