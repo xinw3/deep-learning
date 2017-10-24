@@ -13,8 +13,9 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 100
+epochs = 200
 eta = 0.01   # learning rate
+mini_batch = 10
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
