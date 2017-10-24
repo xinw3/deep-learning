@@ -13,9 +13,9 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 200
+epochs = 500
 eta = 0.01   # learning rate
-mini_batch = 10
+mini_batch = 32
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
@@ -45,11 +45,19 @@ def a():
     for e in range(epochs):
         train_recon_error = 0
         valid_recon_error = 0
+        i_train = 0
+        i_valid = 0
         ''' Training '''
-        for i in range(num_training_example):
-            x = x_train[i, :].reshape(num_input, 1)    # (784, 1)
+        while i_train < num_training_example:
+            j_train = i_train + mini_batch
+            if j_train < num_training_example:
+                x = np.transpose(x_train[i_train:j_train, :])    # (784, mini_batch)
+            else:
+                remaining_size = num_training_example - i_train
+                x = np.transpose(x_train[i_train:num_training_example, :])  # (784, remaining_size)
+
             # positive phase
-            h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, mini_batch)
             h = get_binary_values(h_probs)
             pos_mean = np.dot(x, h.T)    # (input, hidden_units)
 
@@ -59,14 +67,18 @@ def a():
 
             # compute gradient
             weights += eta * (pos_mean - neg_mean)
-            hidbias += eta * (h - h_tilde)
-            visbias += eta * (x - x_tilde)
+            h_gradient = np.sum(h - h_tilde,axis=1).reshape(hidbias.shape) / mini_batch
+            hidbias += eta * h_gradient
+            x_gradient = np.sum((x - x_tilde),axis=1).reshape(visbias.shape) / mini_batch
+            visbias += eta * x_gradient
 
             # get cross entropy reconstruction error
             h_recon = update_hidden(x, hidbias, weights)
             x_recon = update_visible(h_recon, visbias, weights)
 
             train_recon_error += cross_entropy(x_recon, x)
+            # update counter
+            i_train = j_train
 
         ''' Validation '''
         for i in range(num_valid_example):
@@ -84,8 +96,9 @@ def a():
 
         valid_recon_error_avg = valid_recon_error / num_valid_example
         valid_recon_error_list.append(valid_recon_error_avg)
-        print "##### Epoch %s ######\n epoch=%s, eta=%s, hidden_units=%s\n training_error = %s valid_error=%s\n" \
-            % (e + 1, epochs, eta, num_hidden_units, train_recon_error_avg, valid_recon_error_avg)
+        print "##### Epoch %s ######\n epoch=%s, eta=%s, hidden_units=%s, batch_size=%s\n \
+                training_error = %s valid_error=%s\n" \
+            % (e + 1, epochs, eta, num_hidden_units, mini_batch, train_recon_error_avg, valid_recon_error_avg)
 
     ''' Visualization '''
     # Cross Entropy
@@ -171,9 +184,9 @@ def update_visible(hid, visbias, weights):
 def update_hidden(vis, hidbias, weights):
     '''
         Update hidden units
-        output the sigmoid values (hidden_units, 1)
+        output the sigmoid values (hidden_units, mini_batch)
     '''
-    hid = np.dot(weights.T, vis)    # (hidden_units, 1)
+    hid = np.dot(weights.T, vis)    # (hidden_units, mini_batch)
     hid += hidbias
     hid = sigmoid(hid)
 
