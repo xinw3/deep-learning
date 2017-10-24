@@ -23,6 +23,7 @@ stddev = 0.1    # standard deviation
 
 # other global variables used
 best_weights = []
+best_biases = []
 
 def a():
     '''
@@ -85,7 +86,6 @@ def a():
             # update counter
             i_train = j_train
 
-
         ''' Validation '''
         while i_valid < num_valid_example:
             j_valid = i_valid + mini_batch
@@ -145,11 +145,99 @@ def d():
     """
         Unsupervised Learning as Pretraining
     """
+
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+    # dictionary for weights and biases
+    layer_size = {'1': 100, '2':10}
+    layer_size['0'] = x_train.shape[1]
 
+    weights = {}
+    biases = {}
+
+    # TODO: initialize weights and biases
+    weights['1'] = best_weights
+    biases['1'] = best_biases
+    # Creat lists for containing the errors
+    training_classify_error_list = []
+    valid_classify_error_list = []
+
+    for e in range(epochs):
+        training_classify_error = 0     # training classification error
+        valid_classify_error = 0        # valid classification error
+        ''' Training Part '''
+        for i in range(num_training_example):
+            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_train[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            training_classify_error += classification_error(o, label)
+            # Update weights['1']
+            loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
+            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
+            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
+            b1_gradient = loss_over_a1
+            sgd(w1_gradient, b1_gradient, '1', eta)
+            # Update weights['2']
+            loss_over_a2 = np.transpose(softmax_derivative(o, y))
+            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
+            b2_gradient = softmax_derivative(o, y)
+            sgd(w2_gradient, b2_gradient, '2', eta)
+
+        ''' Validation Part '''
+        for i in range(num_valid_example):
+            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_valid[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            valid_classify_error += classification_error(o, label)
+
+        # Add the errors into lists
+        training_classify_error_avg = float(training_classify_error) / num_training_example
+        valid_classify_error_avg = float(valid_classify_error) / num_valid_example
+
+        training_classify_error_list.append(training_classify_error_avg)
+        valid_classify_error_list.append(valid_classify_error_avg)
+        print "##### Epoch %s training_classify_error = %s, valid_classify_error = %s" % \
+            (e + 1, training_classify_error_avg, valid_classify_error_avg)
+    # TODO: Plot the figures
+    plt.xlabel("# epochs")
+    plt.ylabel("error")
+    plt.plot(training_classify_error_list, label='training classification error')
+    plt.plot(valid_classify_error_list, label='valid classification error')
+    plt.legend()
+    plt.show()
+
+
+def sgd(w_gradient, b_gradient, layer, eta):
+    # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
+    weights[layer] -= eta * w_gradient
+    biases[layer] -= eta * b_gradient
+
+
+# Feedforward
+def feedforward(W, x, b):
+    """
+        Input:
+            W: weight of this layer
+            x: neuron inputs
+        Output:
+            a = b + np.dot(W.T, x)
+    """
+    return b + np.dot(np.transpose(W), x)
 
 # Calculate cross entropy
 def cross_entropy(o, y):
@@ -215,7 +303,6 @@ def update_hidden(vis, hidbias, weights):
     hid = sigmoid(hid)
 
     return hid
-
 
 def sigmoid(x):
     """
