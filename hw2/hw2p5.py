@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 1000
+epochs = 100
 lr = 0.01   # learning rate
 mini_batch = 10
 
@@ -22,9 +22,15 @@ mean = 0    # mean
 stddev = 0.1    # standard deviation
 
 # other global variables used
-best_weights = []
-best_biases = []
+# best weights and biases from rbm
+best_weights_rbm = []
+best_biases_rbm = []
+# best weights and biases from Autoencoder
+best_weights_ae = []
+best_biases_ae = []
 
+# parameters of neural network
+layer_size = {'1': 100, '2':10}
 def a():
     '''
         Basic Generalization
@@ -64,16 +70,15 @@ def a():
 
             # positive phase
             h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, mini_batch)
-            h = get_binary_values(h_probs)
-            pos_mean = np.dot(x, h.T)    # (input, hidden_units)
+            pos_mean = np.dot(x, h_probs.T)    # (input, hidden_units)
 
             # negative phase
-            h_tilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
-            neg_mean = np.dot(x_tilde, h_tilde.T)
+            prob_h_given_xtilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
+            neg_mean = np.dot(x_tilde, prob_h_given_xtilde.T)
 
             # compute gradient
             weights += eta * (pos_mean - neg_mean)
-            h_gradient = np.sum(h - h_tilde,axis=1).reshape(hidbias.shape) / mini_batch
+            h_gradient = np.sum(h_probs - prob_h_given_xtilde,axis=1).reshape(hidbias.shape) / mini_batch
             hidbias += eta * h_gradient
             x_gradient = np.sum((x - x_tilde),axis=1).reshape(visbias.shape) / mini_batch
             visbias += eta * x_gradient
@@ -153,16 +158,15 @@ def d():
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
-    # dictionary for weights and biases
-    layer_size = {'1': 100, '2':10}
-    layer_size['0'] = x_train.shape[1]
 
+    layer_size['0'] = x_train.shape[1]
+    # dictionary for weights and biases
     weights = {}
     biases = {}
 
     # TODO: initialize weights and biases
-    weights['1'] = best_weights
-    biases['1'] = best_biases
+    weights['1'] = best_weights_rbm
+    biases['1'] = best_biases_rbm
     # Creat lists for containing the errors
     training_classify_error_list = []
     valid_classify_error_list = []
@@ -186,12 +190,12 @@ def d():
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
             b1_gradient = loss_over_a1
-            sgd(w1_gradient, b1_gradient, '1', eta)
+            sgd(weights, biases, w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
             w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
             b2_gradient = softmax_derivative(o, y)
-            sgd(w2_gradient, b2_gradient, '2', eta)
+            sgd(weights, biases, w2_gradient, b2_gradient, '2', eta)
 
         ''' Validation Part '''
         for i in range(num_valid_example):
@@ -213,7 +217,7 @@ def d():
         valid_classify_error_list.append(valid_classify_error_avg)
         print "##### Epoch %s training_classify_error = %s, valid_classify_error = %s" % \
             (e + 1, training_classify_error_avg, valid_classify_error_avg)
-    # TODO: Plot the figures
+    # Plot the figures
     plt.xlabel("# epochs")
     plt.ylabel("error")
     plt.plot(training_classify_error_list, label='training classification error')
@@ -221,8 +225,13 @@ def d():
     plt.legend()
     plt.show()
 
+def e():
+    """
+        Autoencoder
+    """
 
-def sgd(w_gradient, b_gradient, layer, eta):
+
+def sgd(weights, biases, w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
     weights[layer] -= eta * w_gradient
     biases[layer] -= eta * b_gradient
@@ -262,17 +271,18 @@ def gibbs_sampling(vis, hidbias, visbias, steps, weights):
     # calculate p(h|x~)
     x_tilde = vis
     num_input = vis.shape[0]
+    prob_h_given_xtilde = []
     # Constrastive Divergence steps
     for i in range(steps):
-        prob_h_given_x = update_hidden(x_tilde, hidbias, weights)
+        prob_h_given_xtilde = update_hidden(x_tilde, hidbias, weights)
         # sample h~ from the probs above (binomial distribution)
-        h_tilde = get_binary_values(prob_h_given_x)
+        h_tilde = get_binary_values(prob_h_given_xtilde)
         # calculate p(x~|h)
         prob_x_given_h = update_visible(h_tilde, visbias, weights)
         # sample x~ from the probs above (binomial distribution)
         x_tilde = get_binary_values(prob_x_given_h)
 
-    return h_tilde, x_tilde
+    return prob_h_given_xtilde, x_tilde
 
 def get_binary_values(probs):
     samples = np.random.uniform(size=probs.shape)
