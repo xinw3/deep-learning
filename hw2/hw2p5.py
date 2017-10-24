@@ -13,9 +13,9 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 500
-eta = 0.01   # learning rate
-mini_batch = 32
+epochs = 1000
+lr = 0.1   # learning rate
+mini_batch = 10
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
@@ -25,6 +25,7 @@ def a():
     '''
         Basic Generalization
     '''
+    lr = 0.1
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -43,6 +44,7 @@ def a():
     train_recon_error_list = []
     valid_recon_error_list = []
     for e in range(epochs):
+        eta = lr
         train_recon_error = 0
         valid_recon_error = 0
         i_train = 0
@@ -80,16 +82,24 @@ def a():
             # update counter
             i_train = j_train
 
+        if e % 100 == 0: # decrease learning rate every 10 epochs
+            lr /= 2
+
         ''' Validation '''
-        for i in range(num_valid_example):
-            x = x_valid[i, :].reshape(num_input, 1)    # (784, 1)
+        while i_valid < num_valid_example:
+            j_valid = i_valid + mini_batch
+            if j_valid < num_valid_example:
+                x = np.transpose(x_valid[i_valid:j_valid, :])    # (784, mini_batch)
+            else:
+                remaining_size = num_valid_example - i_valid
+                x = np.transpose(x_valid[i_valid:num_valid_example, :])  # (784, 24) 24+93*32 = 3000
 
             # get cross entropy reconstruction error
             h_recon = update_hidden(x, hidbias, weights)
             x_recon = update_visible(h_recon, visbias, weights)
 
             valid_recon_error += cross_entropy(x_recon, x)
-
+            i_valid = j_valid
 
         train_recon_error_avg = train_recon_error / num_training_example
         train_recon_error_list.append(train_recon_error_avg)
