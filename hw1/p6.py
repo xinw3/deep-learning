@@ -41,7 +41,7 @@ def a():
     num_test_example = x_test.shape[0]
 
     layer_size['0'] = x_train.shape[1]
-    # Initialize parameters(a dictionary holds all the weightss)
+    # Initialize parameters(a dictionary holds all the weights)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['output'])   # (100, 10), (10, 1)
     w1_prev_gradient = np.zeros(weights['1'].shape)
@@ -171,7 +171,7 @@ def b():
     num_test_example = x_test.shape[0]
 
     layer_size['0'] = x_train.shape[1]
-    # Initialize weights(a dictionary holds all the weightss)
+    # Initialize weights(a dictionary holds all the weights)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['output'])   # (100, 10), (10, 1)
     w1_prev_gradient = np.zeros(weights['1'].shape)
@@ -312,7 +312,7 @@ def g():
     num_test_example = x_test.shape[0]
 
     layer_size['0'] = x_train.shape[1]
-    # Initialize weights(a dictionary holds all the weightss)
+    # Initialize weights(a dictionary holds all the weights)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 100), (100, 1)
     weights['3'], biases['3'] = init_params('3' ,layer_size['2'], layer_size['output'])   # (100, 10), (10, 1)
@@ -526,7 +526,7 @@ def h():
     num_features = x_train.shape[1]
 
     layer_size['0'] = x_train.shape[1]
-    # Initialize parameters (a dictionary holds all the weightss)
+    # Initialize parameters (a dictionary holds all the weights)
     weights['1'], biases['1'] = init_params('1', layer_size['0'], layer_size['1'])   # (784, 100), (100, 1)
     weights['2'], biases['2'] = init_params('2' ,layer_size['1'], layer_size['2'])   # (100, 100), (100, 1)
     weights['3'], biases['3'] = init_params('3' ,layer_size['2'], layer_size['output'])   # (100, 10), (10, 1)
