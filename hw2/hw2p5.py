@@ -62,25 +62,29 @@ def a():
         ''' Training '''
         while i_train < num_training_example:
             j_train = i_train + mini_batch
+            size = mini_batch
             if j_train < num_training_example:
                 x = np.transpose(x_train[i_train:j_train, :])    # (784, mini_batch)
+                size = mini_batch
             else:
                 remaining_size = num_training_example - i_train
                 x = np.transpose(x_train[i_train:num_training_example, :])  # (784, remaining_size)
+                size = remaining_size
 
             # positive phase
             h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, mini_batch)
             pos_mean = np.dot(x, h_probs.T)    # (input, hidden_units)
 
             # negative phase
-            prob_h_given_xtilde, x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
+            x_tilde = gibbs_sampling(x, hidbias, visbias, cd_steps, weights)
+            prob_h_given_xtilde = update_hidden(x_tilde, hidbias, weights)
             neg_mean = np.dot(x_tilde, prob_h_given_xtilde.T)
 
             # compute gradient
             weights += eta * (pos_mean - neg_mean)
-            h_gradient = np.sum(h_probs - prob_h_given_xtilde,axis=1).reshape(hidbias.shape) / mini_batch
+            h_gradient = np.sum(h_probs - prob_h_given_xtilde,axis=1).reshape(hidbias.shape) / size
             hidbias += eta * h_gradient
-            x_gradient = np.sum((x - x_tilde),axis=1).reshape(visbias.shape) / mini_batch
+            x_gradient = np.sum((x - x_tilde),axis=1).reshape(visbias.shape) / size
             visbias += eta * x_gradient
 
             # get cross entropy reconstruction error
@@ -141,7 +145,7 @@ def a():
             plt.subplot(num_pictures, num_pictures, count)
             plt.xticks([])
             plt.yticks([])
-            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3, 3), origin='lower')
+            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
             count += 1
 
     plt.show()
@@ -282,7 +286,7 @@ def gibbs_sampling(vis, hidbias, visbias, steps, weights):
         # sample x~ from the probs above (binomial distribution)
         x_tilde = get_binary_values(prob_x_given_h)
 
-    return prob_h_given_xtilde, x_tilde
+    return x_tilde
 
 def get_binary_values(probs):
     samples = np.random.uniform(size=probs.shape)
