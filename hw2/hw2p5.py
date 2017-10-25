@@ -206,7 +206,7 @@ def e():
     num_input = x_train.shape[1]
     num_droped = int(num_input * dropout_rate)
     # set 10% of the inputs to 0
-    if sys.argv[1] == '-f':
+    if sys.argv[1] == '-f' or sys.argv[1] == '-f2':
         print "### Denoising AE MODE ###"
         random_index = np.random.randint(0, high=num_input, size=num_droped)
         for index in random_index:
@@ -285,8 +285,8 @@ def e():
                 count += 1
 
         plt.show()
-    elif sys.argv[1] == '-e2':
-        print "### Problem e: get best weights ###"
+    elif sys.argv[1] == '-e2' or sys.argv[1] == '-f2':
+        print "### Problem %s: get best weights ###" % (sys.argv[1])
         best_weights_ae = weights
         best_hidbias_ae = hidbias
         best_visbias_ae = visbias
@@ -298,7 +298,7 @@ def d():
     """
     global a
     global e
-    nn_epochs = 100
+    nn_epochs = 150
     eta = 0.01
     # Get the best_weights and best biases from a() or d()
     best_weights = []
@@ -317,7 +317,7 @@ def d():
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
 
-    layer_size['0'] = num_input
+    layer_size['0'] = x_train.shape[1]
     # dictionary for weights and biases
     weights = {}
     biases = {}
