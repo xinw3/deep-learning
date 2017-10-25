@@ -302,14 +302,23 @@ def e():
         for i in range(num_training_example):
             x = x_train[i, :].reshape(num_input, 1)    # (784, 1)
             # encode
-            h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            h = update_hidden(x, hidbias, weights)    # (hidden_units, 1) sigmoid
             # decode
-            x_hat = update_visible(h_probs, visbias, weights)
-            loss_over_ahat = x_hat - x  # (784,1)
-            ahat_over_w = h_probs   # (100,1)
+            x_hat = update_visible(h, visbias, weights) # sigmoid
+
+            loss_over_xhat = x_hat - x  # (784,1)
+            xhat_over_ahat = sigmoid_derivative(x_hat)
+            loss_over_ahat = np.multiply(loss_over_xhat, xhat_over_ahat)  # (784,1)
+
+            a_over_h = weights    #(784, 100)
+            loss_over_h = np.dot(a_over_h.T, loss_over_ahat)    # (100,1)
+            h_over_a = sigmoid_derivative(h)
+            loss_over_a = np.multiply(loss_over_h, h_over_a)    # (100, 1)
+
+            ahat_over_w = h   # (100,1)
             w_gradient = np.dot(loss_over_ahat, ahat_over_w.T) / 2
             visbias_gradient = loss_over_ahat
-            hidbias_gradient = np.sum(weights,axis=0).reshape(hidbias.shape)
+            hidbias_gradient = loss_over_a
 
             # backprop
             weights -= lr * w_gradient  # (784,100)
