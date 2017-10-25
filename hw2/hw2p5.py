@@ -277,8 +277,78 @@ def d():
 def e():
     """
         Autoencoder
+        using tied weights
     """
+    global lr
+    # Load Training Data (3000, 785)
+    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
+    # Load Validation Data (1000, 785)
+    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
 
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+
+    num_input = x_train.shape[1]
+    num_hidden = num_hidden_units
+
+    weights, visbias, hidbias = \
+        init_params(mean, stddev, num_input, num_hidden)
+
+    for e in range(epochs):
+        train_recon_error = 0
+        valid_recon_error = 0
+        ''' Training '''
+        for i in range(num_training_example):
+            x = x_train[i, :].reshape(num_input, 1)    # (784, 1)
+            # encode
+            h_probs = update_hidden(x, hidbias, weights)    # (hidden_units, 1)
+            # decode
+            x_hat = update_visible(h_probs, visbias, weights)
+            loss_over_ahat = x_hat - x  # (784,1)
+            ahat_over_w = h_probs   # (100,1)
+            w_gradient = np.dot(loss_over_ahat, ahat_over_w.T) / 2
+            visbias_gradient = loss_over_ahat
+            hidbias_gradient = np.sum(weights,axis=0).reshape(hidbias.shape)
+
+            # backprop
+            weights -= lr * w_gradient  # (784,100)
+            visbias -= lr * visbias_gradient    # (784,1)
+            hidbias -= lr * hidbias_gradient    # (100, 1)
+
+            train_recon_error += cross_entropy(x_hat, x)
+        ''' Validation '''
+        for i in range(num_valid_example):
+            x = x_valid[i, :].reshape(num_input, 1)    # (784, 1)
+
+            # get cross entropy reconstruction error
+            h_probs = update_hidden(x, hidbias, weights)
+            x_hat = update_visible(h_probs, visbias, weights)
+
+            valid_recon_error += cross_entropy(x_hat, x)
+
+        train_recon_error_avg = train_recon_error / num_training_example
+        valid_recon_error_avg = valid_recon_error / num_valid_example
+        print "##### Epoch %s ######\n \
+            epoch=%s, eta=%s, hidden_units=%s\n training_error = %s valid_error=%s\n" \
+            % (e + 1, epochs, lr, num_hidden_units, train_recon_error_avg, valid_recon_error_avg)
+
+    ''' Visualization '''
+    # weights
+    fig, axs = plt.subplots(10, 10)
+    # Remove horizontal space between axes
+    fig.subplots_adjust(wspace=0, hspace=0)
+    count = 1
+    num_pictures = int(np.sqrt(num_hidden_units))
+    for i in range(num_pictures):
+        for j in range(num_pictures):
+            plt.subplot(num_pictures, num_pictures, count)
+            plt.xticks([])
+            plt.yticks([])
+            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3,3), origin='lower')
+            count += 1
+
+    plt.show()
 
 def sgd(weights, biases, w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
@@ -445,6 +515,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-a": a, "-c":c, "-d":d}
+func_arg = {"-a": a, "-c":c, "-d":d, "-e":e}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
