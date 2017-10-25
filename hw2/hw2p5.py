@@ -210,6 +210,10 @@ def d():
     # TODO: initialize weights and biases
     weights['1'] = best_weights_rbm
     biases['1'] = best_hidbias_rbm
+    # random initialize second layer parameters
+    b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
+    weights['2'] = np.random.uniform(-b, b, (layer_size['1'], layer_size['2']))
+    biases['2'] = np.zeros((layer_size['2'], 1))
     # Creat lists for containing the errors
     training_classify_error_list = []
     valid_classify_error_list = []
@@ -364,6 +368,25 @@ def sigmoid(x):
     """
     return expit(x)
 
+def softmax(x):
+    """
+        Input: an array
+        Output: an array of softmax function of each element
+    """
+    x -= np.max(x)
+    return np.exp(x) / np.sum(np.exp(x))
+
+def softmax_derivative(f, y):
+    """
+        Gradient of the softmax layer (output layer)
+        Input:
+            f: output of the softmax layer
+            y: indicator function(desired output)
+        Output:
+            partial derivative of softmax layer
+    """
+    return -(y - f)
+
 # Initialize weights
 def init_params(mean, stddev, size_k_1, size_k):
     """
@@ -399,6 +422,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-a": a, "-c":c}
+func_arg = {"-a": a, "-c":c, "-d":d}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
