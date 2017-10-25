@@ -11,10 +11,10 @@ validation_set = "../mnist_data/digitsvalid.txt"
 test_set = "../mnist_data/digitstest.txt"
 
 # tunable parameters
-cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
+cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
 epochs = 40     # epochs for RBM training
-lr = 0.005   # learning rate
+lr = 0.005   # learning rate for RBM
 mini_batch = 10
 
 # parameters of normal distribution in weights initialization
@@ -193,6 +193,7 @@ def d():
         Unsupervised Learning as Pretraining
     """
     nn_epochs = 100
+    eta = 0.01
     # Get the best_weights and best biases from a()
     best_weights_rbm, best_hidbias_rbm, best_visbias_rbm = a()
     # Load Training Data (3000, 785)
@@ -208,7 +209,7 @@ def d():
     weights = {}
     biases = {}
 
-    # TODO: initialize weights and biases
+    # initialize weights and biases
     weights['1'] = best_weights_rbm
     biases['1'] = best_hidbias_rbm
     # random initialize second layer parameters
@@ -238,12 +239,12 @@ def d():
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
             b1_gradient = loss_over_a1
-            sgd(weights, biases, w1_gradient, b1_gradient, '1', lr)
+            sgd(weights, biases, w1_gradient, b1_gradient, '1', eta)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
             w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
             b2_gradient = softmax_derivative(o, y)
-            sgd(weights, biases, w2_gradient, b2_gradient, '2', lr)
+            sgd(weights, biases, w2_gradient, b2_gradient, '2', eta)
 
         ''' Validation Part '''
         for i in range(num_valid_example):
@@ -267,7 +268,7 @@ def d():
             (e + 1, training_classify_error_avg, valid_classify_error_avg)
     # Plot the figures
     plt.xlabel("# epochs")
-    plt.ylabel("error")
+    plt.ylabel("error(%)")
     plt.plot(training_classify_error_list, label='training classification error')
     plt.plot(valid_classify_error_list, label='valid classification error')
     plt.legend()
