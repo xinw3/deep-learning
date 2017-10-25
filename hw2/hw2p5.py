@@ -12,10 +12,13 @@ test_set = "../mnist_data/digitstest.txt"
 
 # tunable parameters
 cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
-num_hidden_units = 100  # number of hidden units
-epochs = 50     # epochs for RBM training
+num_hidden_units = 50  # number of hidden units for pretraining models
+epochs = 40     # epochs for pretraining models
 lr = 0.005   # learning rate for RBM
 mini_batch = 10
+# parameters of neural network
+layer_size = {'1': num_hidden_units, '2':10}
+nn_epochs = 100     # epochs for neural network
 
 # parameters of normal distribution in weights initialization
 mean = 0    # mean
@@ -31,8 +34,7 @@ best_weights_ae = []
 best_hidbias_ae = []
 best_visbias_ae = []
 
-# parameters of neural network
-layer_size = {'1': 100, '2':10}
+
 def a():
     '''
         Basic Generalization
@@ -298,16 +300,22 @@ def d():
     """
     global a
     global e
-    nn_epochs = 150
+    global nn_epochs
     eta = 0.01
     # Get the best_weights and best biases from a() or d()
     best_weights = []
     best_hidbias = []
     best_visbias = []
+    plot_title = ''
     if sys.argv[1] == '-d':
         best_weights, best_hidbias, best_visbias = a()
+        plot_title = 'RBM'
     if sys.argv[1] == '-e2' or sys.argv[1] == '-f2':
         best_weights, best_hidbias, best_visbias = e()
+        if sys.argv[1] == '-e2':
+            plot_title = 'Autoencoder'
+        else:
+            plot_title = 'Denoising Autoencoder'
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -385,6 +393,9 @@ def d():
     plt.plot(training_classify_error_list, label='training classification error')
     plt.plot(valid_classify_error_list, label='valid classification error')
     plt.legend()
+    plt.title('Cross Entropy Error (%s)\n \
+            (learning rate=%s, hidden_units=%s, batch_size=%s, cd_steps=%s)'\
+            % (plot_title, eta, num_hidden_units, mini_batch, cd_steps))
     plt.show()
 
 
