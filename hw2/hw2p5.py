@@ -11,7 +11,7 @@ validation_set = "../mnist_data/digitsvalid.txt"
 test_set = "../mnist_data/digitstest.txt"
 
 # tunable parameters
-cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
+cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
 epochs = 40
 lr = 0.005   # learning rate
@@ -211,7 +211,7 @@ def d():
     weights['1'] = best_weights_rbm
     biases['1'] = best_hidbias_rbm
     # random initialize second layer parameters
-    b = np.sqrt(6) / np.sqrt(size_k + size_k_1)
+    b = np.sqrt(6) / np.sqrt(layer_size['2'] + layer_size['1'])
     weights['2'] = np.random.uniform(-b, b, (layer_size['1'], layer_size['2']))
     biases['2'] = np.zeros((layer_size['2'], 1))
     # Creat lists for containing the errors
@@ -237,12 +237,12 @@ def d():
             loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
             w1_gradient = np.dot(x, np.transpose(loss_over_a1))
             b1_gradient = loss_over_a1
-            sgd(weights, biases, w1_gradient, b1_gradient, '1', eta)
+            sgd(weights, biases, w1_gradient, b1_gradient, '1', lr)
             # Update weights['2']
             loss_over_a2 = np.transpose(softmax_derivative(o, y))
             w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
             b2_gradient = softmax_derivative(o, y)
-            sgd(weights, biases, w2_gradient, b2_gradient, '2', eta)
+            sgd(weights, biases, w2_gradient, b2_gradient, '2', lr)
 
         ''' Validation Part '''
         for i in range(num_valid_example):
@@ -368,6 +368,12 @@ def sigmoid(x):
     """
     return expit(x)
 
+def sigmoid_derivative(x):
+    """
+        Return the derivative of the sigmoid function
+    """
+    return sigmoid(x) * (1 - sigmoid(x))
+
 def softmax(x):
     """
         Input: an array
@@ -386,6 +392,21 @@ def softmax_derivative(f, y):
             partial derivative of softmax layer
     """
     return -(y - f)
+
+# Classification Error
+def classification_error(o, label):
+    """
+        If it is classified incorrectly, return 1.
+        Or else return 0.
+        Input:
+            o: outpupt of the softmax layer
+            label: the correct laybel
+    """
+    predicted_label = np.argmax(o)
+    if predicted_label == label:
+        return 0
+    else:
+        return 1
 
 # Initialize weights
 def init_params(mean, stddev, size_k_1, size_k):
