@@ -9,15 +9,27 @@ Replace [problem letter] with the follows:
 
 "c": Problem 5 c).
 
+     Sampling from RBM model
+
 "d": Problem 5 d).
 
-"e":
+     Only for the neural nets with pretrained weights using RBM
 
-"e2":
+"e": Problem 5 e) Visualizing weights
 
-"f":
+     For visualizing the weights pretrained using Autoencoder
 
-"f2"
+"e2": Problem 5 e) Classification error
+
+     For training neural nets with weights obtained from standard Autoencoder
+
+"f": Problem 5 f) Visualizing weights
+
+     For visualizing the weights pretrained using Denoising Autoencoder
+
+"f2": Problem 5 f) Classification error
+
+     For training neural nets with weights obtained from standard Autoencoder
 
 
 Example: python hw2p5.py -a
