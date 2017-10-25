@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 100
+epochs = 40
 lr = 0.005   # learning rate
 mini_batch = 10
 
@@ -24,7 +24,8 @@ stddev = 0.1    # standard deviation
 # other global variables used
 # best weights and biases from rbm
 best_weights_rbm = []
-best_biases_rbm = []
+best_hidbias_rbm = []
+best_visbias_rbm = []
 # best weights and biases from Autoencoder
 best_weights_ae = []
 best_biases_ae = []
@@ -123,29 +124,65 @@ def a():
                 train_recon_error_avg, valid_recon_error_avg)
 
     ''' Visualization '''
-    # Cross Entropy
-    plt.figure(1)
-    plt.xlabel("# epochs")
-    plt.ylabel("error")
-    plt.plot(train_recon_error_list, label='training error')
-    plt.plot(valid_recon_error_list, label='valid error')
-    plt.title('Cross Entropy Reconstruction Error\n \
-            (learning rate=%s, hidden_units=%s, batch_size=%s, cd_steps=%s)'\
-            % (eta, num_hidden_units, mini_batch, cd_steps))
-    plt.legend()
+    if sys.argv[1] == '-a':
+        # Cross Entropy
+        plt.figure(1)
+        plt.xlabel("# epochs")
+        plt.ylabel("error")
+        plt.plot(train_recon_error_list, label='training error')
+        plt.plot(valid_recon_error_list, label='valid error')
+        plt.title('Cross Entropy Reconstruction Error\n \
+                (learning rate=%s, hidden_units=%s, batch_size=%s, cd_steps=%s)'\
+                % (eta, num_hidden_units, mini_batch, cd_steps))
+        plt.legend()
 
-    # weights
+        # weights
+        fig, axs = plt.subplots(10, 10)
+        # Remove horizontal space between axes
+        fig.subplots_adjust(wspace=0, hspace=0)
+        count = 1
+        num_pictures = int(np.sqrt(num_hidden_units))
+        for i in range(num_pictures):
+            for j in range(num_pictures):
+                plt.subplot(num_pictures, num_pictures, count)
+                plt.xticks([])
+                plt.yticks([])
+                plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3,3), origin='lower')
+                count += 1
+
+        plt.show()
+    elif sys.argv[1] == '-c' or sys.argv[1] == '-d':
+        best_weights_rbm = weights
+        best_hidbias_rbm = hidbias
+        best_visbias_rbm = visbias
+        return best_weights_rbm, best_hidbias_rbm, best_visbias_rbm
+
+def c():
+    """
+        Sampling from the RBM Model
+    """
+    # Get the best_weights and best biases from a()
+    best_weights_rbm, best_hidbias_rbm, best_visbias_rbm = a()     # (input,hidden),(hidden,1)
+    steps = 1000
+    num_samples = 100
+    num_input = best_weights_rbm.shape[0]   # 784
+    num_hidden = best_weights_rbm.shape[1]  # 100
+    x_random = np.random.normal(mean, stddev, (num_input, num_samples))
+    x_recon = gibbs_sampling(x_random, best_hidbias_rbm, best_visbias_rbm, steps, weights)
+
+    ''' Visualization '''
+    # x_recon
     fig, axs = plt.subplots(10, 10)
     # Remove horizontal space between axes
     fig.subplots_adjust(wspace=0, hspace=0)
     count = 1
-    num_pictures = int(np.sqrt(num_hidden_units))
+    num_pictures = int(np.sqrt(num_samples))
     for i in range(num_pictures):
         for j in range(num_pictures):
             plt.subplot(num_pictures, num_pictures, count)
             plt.xticks([])
             plt.yticks([])
-            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3,3), origin='lower')
+            plt.imshow(x_recon[:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
             count += 1
 
     plt.show()
@@ -154,7 +191,8 @@ def d():
     """
         Unsupervised Learning as Pretraining
     """
-
+    # Get the best_weights and best biases from a()
+    best_weights_rbm, best_biases_rbm = a()
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -360,6 +398,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-a": a}
+func_arg = {"-a": a, "-c":c}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
