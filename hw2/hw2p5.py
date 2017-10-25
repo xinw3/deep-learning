@@ -11,7 +11,7 @@ validation_set = "../mnist_data/digitsvalid.txt"
 test_set = "../mnist_data/digitstest.txt"
 
 # tunable parameters
-cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
+cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
 epochs = 40
 lr = 0.005   # learning rate
@@ -152,6 +152,7 @@ def a():
 
         plt.show()
     elif sys.argv[1] == '-c' or sys.argv[1] == '-d':
+        print "#### Problem %s ####" % (sys.argv[1])
         best_weights_rbm = weights
         best_hidbias_rbm = hidbias
         best_visbias_rbm = visbias
@@ -168,7 +169,7 @@ def c():
     num_input = best_weights_rbm.shape[0]   # 784
     num_hidden = best_weights_rbm.shape[1]  # 100
     x_random = np.random.normal(mean, stddev, (num_input, num_samples))
-    x_recon = gibbs_sampling(x_random, best_hidbias_rbm, best_visbias_rbm, steps, weights)
+    x_recon = gibbs_sampling(x_random, best_hidbias_rbm, best_visbias_rbm, steps, best_weights_rbm)
 
     ''' Visualization '''
     # x_recon
@@ -192,7 +193,7 @@ def d():
         Unsupervised Learning as Pretraining
     """
     # Get the best_weights and best biases from a()
-    best_weights_rbm, best_biases_rbm = a()
+    best_weights_rbm, best_hidbias_rbm, best_visbias_rbm = a()
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -208,7 +209,7 @@ def d():
 
     # TODO: initialize weights and biases
     weights['1'] = best_weights_rbm
-    biases['1'] = best_biases_rbm
+    biases['1'] = best_hidbias_rbm
     # Creat lists for containing the errors
     training_classify_error_list = []
     valid_classify_error_list = []
