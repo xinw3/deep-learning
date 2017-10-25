@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 40     # epochs for RBM training
+epochs = 50     # epochs for RBM training
 lr = 0.005   # learning rate for RBM
 mini_batch = 10
 
@@ -281,7 +281,7 @@ def e():
                 plt.subplot(num_pictures, num_pictures, count)
                 plt.xticks([])
                 plt.yticks([])
-                plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+                plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3,3), origin='lower')
                 count += 1
 
         plt.show()
