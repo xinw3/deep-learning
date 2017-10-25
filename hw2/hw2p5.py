@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 40     # epochs for RBM training
+epochs = 1     # epochs for RBM training
 lr = 0.005   # learning rate for RBM
 mini_batch = 10
 
@@ -281,7 +281,7 @@ def e():
         best_weights_ae = weights
         best_hidbias_ae = hidbias
         best_visbias_ae = visbias
-        return best_weights_rbm, best_hidbias_rbm, best_visbias_rbm
+        return best_weights_ae, best_hidbias_ae, best_visbias_ae
 
 def d():
     """
@@ -299,6 +299,7 @@ def d():
         best_weights, best_hidbias, best_visbias = a()
     if sys.argv[1] == '-e2':
         best_weights, best_hidbias, best_visbias = e()
+        print best_weights.shape, best_hidbias.shape, best_visbias.shape
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
@@ -313,6 +314,7 @@ def d():
     biases = {}
 
     # initialize weights and biases
+    print "best_weights %s, best_hidbias = %s" % (len(best_weights), len(best_hidbias))
     weights['1'] = best_weights
     biases['1'] = best_hidbias
     # random initialize second layer parameters
