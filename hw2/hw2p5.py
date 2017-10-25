@@ -13,8 +13,8 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 10     # epochs for RBM training
-lr = 0.1   # learning rate for RBM
+epochs = 40     # epochs for RBM training
+lr = 0.005   # learning rate for RBM
 mini_batch = 10
 
 # parameters of normal distribution in weights initialization
@@ -28,7 +28,8 @@ best_hidbias_rbm = []
 best_visbias_rbm = []
 # best weights and biases from Autoencoder
 best_weights_ae = []
-best_biases_ae = []
+best_hidbias_ae = []
+best_visbias_ae = []
 
 # parameters of neural network
 layer_size = {'1': 100, '2':10}
@@ -188,97 +189,13 @@ def c():
 
     plt.show()
 
-def d():
-    """
-        Unsupervised Learning as Pretraining
-    """
-    nn_epochs = 100
-    eta = 0.01
-    # Get the best_weights and best biases from a()
-    best_weights_rbm, best_hidbias_rbm, best_visbias_rbm = a()
-    # Load Training Data (3000, 785)
-    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
-    # Load Validation Data (1000, 785)
-    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
-    # Get number of examples
-    num_training_example = x_train.shape[0]
-    num_valid_example = x_valid.shape[0]
-
-    layer_size['0'] = x_train.shape[1]
-    # dictionary for weights and biases
-    weights = {}
-    biases = {}
-
-    # initialize weights and biases
-    weights['1'] = best_weights_rbm
-    biases['1'] = best_hidbias_rbm
-    # random initialize second layer parameters
-    b = np.sqrt(6) / np.sqrt(layer_size['2'] + layer_size['1'])
-    weights['2'] = np.random.uniform(-b, b, (layer_size['1'], layer_size['2']))
-    biases['2'] = np.zeros((layer_size['2'], 1))
-    # Creat lists for containing the errors
-    training_classify_error_list = []
-    valid_classify_error_list = []
-
-    for e in range(nn_epochs):
-        training_classify_error = 0     # training classification error
-        valid_classify_error = 0        # valid classification error
-        ''' Training Part '''
-        for i in range(num_training_example):
-            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
-            label = int(y_train[i,0])
-            y[label] = 1
-            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
-            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
-            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
-            o = softmax(a2)     # (10, 1)
-            training_classify_error += classification_error(o, label)
-            # Update weights['1']
-            loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
-            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
-            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
-            b1_gradient = loss_over_a1
-            sgd(weights, biases, w1_gradient, b1_gradient, '1', eta)
-            # Update weights['2']
-            loss_over_a2 = np.transpose(softmax_derivative(o, y))
-            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
-            b2_gradient = softmax_derivative(o, y)
-            sgd(weights, biases, w2_gradient, b2_gradient, '2', eta)
-
-        ''' Validation Part '''
-        for i in range(num_valid_example):
-            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
-            y = np.zeros((layer_size['2'], 1))
-            label = int(y_valid[i,0])
-            y[label] = 1
-            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
-            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
-            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
-            o = softmax(a2)     # (10, 1)
-            valid_classify_error += classification_error(o, label)
-
-        # Add the errors into lists
-        training_classify_error_avg = float(training_classify_error) / num_training_example * 100
-        valid_classify_error_avg = float(valid_classify_error) / num_valid_example * 100
-
-        training_classify_error_list.append(training_classify_error_avg)
-        valid_classify_error_list.append(valid_classify_error_avg)
-        print "##### Epoch %s training_classify_error = %s%%, valid_classify_error = %s%%" % \
-            (e + 1, training_classify_error_avg, valid_classify_error_avg)
-    # Plot the figures
-    plt.xlabel("# epochs")
-    plt.ylabel("error(%)")
-    plt.plot(training_classify_error_list, label='training classification error')
-    plt.plot(valid_classify_error_list, label='valid classification error')
-    plt.legend()
-    plt.show()
 
 def e():
     """
         Autoencoder
         using tied weights
     """
+    print "### Autoencoder ###"
     global lr
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
@@ -343,26 +260,129 @@ def e():
             % (e + 1, epochs, lr, num_hidden_units, train_recon_error_avg, valid_recon_error_avg)
 
     ''' Visualization '''
-    # weights
-    fig, axs = plt.subplots(10, 10)
-    # Remove horizontal space between axes
-    fig.subplots_adjust(wspace=0, hspace=0)
-    count = 1
-    num_pictures = int(np.sqrt(num_hidden_units))
-    for i in range(num_pictures):
-        for j in range(num_pictures):
-            plt.subplot(num_pictures, num_pictures, count)
-            plt.xticks([])
-            plt.yticks([])
-            plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', clim=(-3,3), origin='lower')
-            count += 1
+    if sys.argv[1] == '-e':
+        # weights
+        fig, axs = plt.subplots(10, 10)
+        # Remove horizontal space between axes
+        fig.subplots_adjust(wspace=0, hspace=0)
+        count = 1
+        num_pictures = int(np.sqrt(num_hidden_units))
+        for i in range(num_pictures):
+            for j in range(num_pictures):
+                plt.subplot(num_pictures, num_pictures, count)
+                plt.xticks([])
+                plt.yticks([])
+                plt.imshow(weights[:, count - 1].reshape(28, 28), cmap='gray', origin='lower')
+                count += 1
 
+        plt.show()
+    elif sys.argv[1] == '-e2':
+        print "### Problem e: get best weights ###"
+        best_weights_ae = weights
+        best_hidbias_ae = hidbias
+        best_visbias_ae = visbias
+        return best_weights_rbm, best_hidbias_rbm, best_visbias_rbm
+
+def d():
+    """
+        Unsupervised Learning as Pretraining
+    """
+    global a
+    global e
+    nn_epochs = 100
+    eta = 0.01
+    # Get the best_weights and best biases from a() or d()
+    best_weights = []
+    best_hidbias = []
+    best_visbias = []
+    if sys.argv[1] == '-d':
+        best_weights, best_hidbias, best_visbias = a()
+    if sys.argv[1] == '-e2':
+        best_weights, best_hidbias, best_visbias = e()
+    # Load Training Data (3000, 785)
+    x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
+    # Load Validation Data (1000, 785)
+    x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+    # Get number of examples
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
+
+    layer_size['0'] = x_train.shape[1]
+    # dictionary for weights and biases
+    weights = {}
+    biases = {}
+
+    # initialize weights and biases
+    weights['1'] = best_weights
+    biases['1'] = best_hidbias
+    # random initialize second layer parameters
+    b = np.sqrt(6) / np.sqrt(layer_size['2'] + layer_size['1'])
+    weights['2'] = np.random.uniform(-b, b, (layer_size['1'], layer_size['2']))
+    biases['2'] = np.zeros((layer_size['2'], 1))
+    # Creat lists for containing the errors
+    training_classify_error_list = []
+    valid_classify_error_list = []
+
+    for e in range(nn_epochs):
+        training_classify_error = 0     # training classification error
+        valid_classify_error = 0        # valid classification error
+        ''' Training Part '''
+        for i in range(num_training_example):
+            x = x_train[i, :].reshape(len(x_train[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_train[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            training_classify_error += classification_error(o, label)
+            # Update weights['1']
+            loss_over_h1 = np.dot(weights['2'], softmax_derivative(o, y))   # (100, 1)
+            loss_over_a1 = np.multiply(loss_over_h1, sigmoid_derivative(a1))    #(100, 1)
+            w1_gradient = np.dot(x, np.transpose(loss_over_a1))
+            b1_gradient = loss_over_a1
+            sgd(weights, biases, w1_gradient, b1_gradient, '1', eta)
+            # Update weights['2']
+            loss_over_a2 = np.transpose(softmax_derivative(o, y))
+            w2_gradient = np.dot(h1, loss_over_a2)   # 100*10
+            b2_gradient = softmax_derivative(o, y)
+            sgd(weights, biases, w2_gradient, b2_gradient, '2', eta)
+
+        ''' Validation Part '''
+        for i in range(num_valid_example):
+            x = x_valid[i, :].reshape(len(x_valid[i, :]), 1)    # (784, 1)
+            y = np.zeros((layer_size['2'], 1))
+            label = int(y_valid[i,0])
+            y[label] = 1
+            a1 = feedforward(weights['1'], x, biases['1'])  # (100, 1)
+            h1 = sigmoid(a1)  # Output of the hidden layer, input of last layer
+            a2 = feedforward(weights['2'], h1, biases['2']) # (10, 1)
+            o = softmax(a2)     # (10, 1)
+            valid_classify_error += classification_error(o, label)
+
+        # Add the errors into lists
+        training_classify_error_avg = float(training_classify_error) / num_training_example * 100
+        valid_classify_error_avg = float(valid_classify_error) / num_valid_example * 100
+
+        training_classify_error_list.append(training_classify_error_avg)
+        valid_classify_error_list.append(valid_classify_error_avg)
+        print "##### Epoch %s training_classify_error = %s%%, valid_classify_error = %s%%" % \
+            (e + 1, training_classify_error_avg, valid_classify_error_avg)
+    # Plot the figures
+    plt.xlabel("# epochs")
+    plt.ylabel("error(%)")
+    plt.plot(training_classify_error_list, label='training classification error')
+    plt.plot(valid_classify_error_list, label='valid classification error')
+    plt.legend()
     plt.show()
+
 
 def sgd(weights, biases, w_gradient, b_gradient, layer, eta):
     # print "##### layer = %s, w_gradient = %s, b_gradient = %s ########" % (layer, w_gradient[0, :], b_gradient[0, :])
     weights[layer] -= eta * w_gradient
     biases[layer] -= eta * b_gradient
+
 
 
 # Feedforward
@@ -524,6 +544,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-a": a, "-c":c, "-d":d, "-e":e}
+func_arg = {"-a": a, "-c":c, "-d":d, "-e":e, "-e2":d}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
