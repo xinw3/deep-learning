@@ -192,16 +192,25 @@ def c():
 
 def e():
     """
-        Autoencoder
+        Autoencoder and Denoising Autoencoder
         using tied weights
     """
     print "### Autoencoder ###"
     global lr
+    dropout_rate = 0.1
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
 
+    num_input = x_train.shape[1]
+    num_droped = int(num_input * dropout_rate)
+    # set 10% of the inputs to 0
+    if sys.argv[1] == '-f':
+        print "### Denoising AE MODE ###"
+        random_index = np.random.randint(0, high=num_input, size=num_droped)
+        for index in random_index:
+            x_train[index] = 0
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
@@ -303,11 +312,12 @@ def d():
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
     # Load Validation Data (1000, 785)
     x_valid, y_valid = load_data(validation_set)    # (1000, 784), (1000, 1)
+
     # Get number of examples
     num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
 
-    layer_size['0'] = x_train.shape[1]
+    layer_size['0'] = num_input
     # dictionary for weights and biases
     weights = {}
     biases = {}
@@ -544,6 +554,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-a": a, "-c":c, "-d":d, "-e":e, "-e2":d}
+func_arg = {"-a": a, "-c":c, "-d":d, "-e":e, "-e2":d, "-f": e, "-f2":d}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()
