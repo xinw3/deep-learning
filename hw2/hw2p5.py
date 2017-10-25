@@ -269,7 +269,7 @@ def e():
             % (e + 1, epochs, lr, num_hidden_units, train_recon_error_avg, valid_recon_error_avg)
 
     ''' Visualization '''
-    if sys.argv[1] == '-e':
+    if sys.argv[1] == '-e' or sys.argv[1] == '-f':
         # weights
         fig, axs = plt.subplots(10, 10)
         # Remove horizontal space between axes
@@ -306,7 +306,7 @@ def d():
     best_visbias = []
     if sys.argv[1] == '-d':
         best_weights, best_hidbias, best_visbias = a()
-    if sys.argv[1] == '-e2':
+    if sys.argv[1] == '-e2' or sys.argv[1] == '-f2':
         best_weights, best_hidbias, best_visbias = e()
     # Load Training Data (3000, 785)
     x_train, y_train = load_data(training_set)     # (3000, 784), (3000, 1)
