@@ -1,0 +1,26 @@
+############### Code for hw2 Problem 5 (xinw3) ##############
+1. To execute the code, please type "python hw2p5.py -[problem letter]".
+Replace [problem letter] with the follows:
+
+"a": Problem 5 a).
+
+     If you want to run b), please replace the variable "cd_steps" in the beginning
+     to the different steps
+
+"c": Problem 5 c).
+
+"d": Problem 5 d).
+
+"e":
+
+"e2":
+
+"f":
+
+"f2"
+
+
+Example: python hw2p5.py -a
+
+2. You may change the tunable parameters in the beginning of the hw2p5.py.
+   For the variables of the neural nets, please change it at the beginning of d()
