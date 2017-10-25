@@ -13,7 +13,7 @@ test_set = "../mnist_data/digitstest.txt"
 # tunable parameters
 cd_steps = 1    # run cd_steps iterations of Gibbs Sampling
 num_hidden_units = 100  # number of hidden units
-epochs = 40
+epochs = 40     # epochs for RBM training
 lr = 0.005   # learning rate
 mini_batch = 10
 
@@ -192,6 +192,7 @@ def d():
     """
         Unsupervised Learning as Pretraining
     """
+    nn_epochs = 100
     # Get the best_weights and best biases from a()
     best_weights_rbm, best_hidbias_rbm, best_visbias_rbm = a()
     # Load Training Data (3000, 785)
@@ -218,7 +219,7 @@ def d():
     training_classify_error_list = []
     valid_classify_error_list = []
 
-    for e in range(epochs):
+    for e in range(nn_epochs):
         training_classify_error = 0     # training classification error
         valid_classify_error = 0        # valid classification error
         ''' Training Part '''
@@ -257,12 +258,12 @@ def d():
             valid_classify_error += classification_error(o, label)
 
         # Add the errors into lists
-        training_classify_error_avg = float(training_classify_error) / num_training_example
-        valid_classify_error_avg = float(valid_classify_error) / num_valid_example
+        training_classify_error_avg = float(training_classify_error) / num_training_example * 100
+        valid_classify_error_avg = float(valid_classify_error) / num_valid_example * 100
 
         training_classify_error_list.append(training_classify_error_avg)
         valid_classify_error_list.append(valid_classify_error_avg)
-        print "##### Epoch %s training_classify_error = %s, valid_classify_error = %s" % \
+        print "##### Epoch %s training_classify_error = %s%%, valid_classify_error = %s%%" % \
             (e + 1, training_classify_error_avg, valid_classify_error_avg)
     # Plot the figures
     plt.xlabel("# epochs")
