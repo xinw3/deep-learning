@@ -12,7 +12,7 @@ test_set = "../mnist_data/digitstest.txt"
 
 # tunable parameters
 cd_steps = 20    # run cd_steps iterations of Gibbs Sampling
-num_hidden_units = 50  # number of hidden units for pretraining models
+num_hidden_units = 100  # number of hidden units for pretraining models
 epochs = 40     # epochs for pretraining models
 lr = 0.005   # learning rate for RBM
 mini_batch = 10
