@@ -15,17 +15,21 @@ def plot_ngram():
     voc_file_name = 'output_ngram'
     count_list = []
 
+    threshold = 4
 
     with open(voc_file_name) as f:
         for line in f:
             word, count = line.split(',')
-            count_list.append(int(count))
+            count = int(count)
+            count_list.append(count)
+            if count < threshold:
+                break
 
 
     print count_list
     x_axis = np.arange(len(count_list))
 
-    plt.plot(x_axis,count_list)
+    plt.plot(count_list)
     plt.xlabel('id')
     plt.ylabel('# of ngrams')
     plt.title('ngrams distribution')
