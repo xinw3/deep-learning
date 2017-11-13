@@ -10,21 +10,16 @@ def mapper():
         Input: train.txt
                top 7997 words in the training file to build vocabulary
     '''
-    voc_file_name = 'output7997'
+    voc_file_name = 'output8000'
     word_set = set()
-    tags = ['UNK', 'START', 'END']
+
     N = 4       # N is the number of grams
     # build word vocabulary
     # print 'building vocabulary...'
-    index = 0
-    total_ngrams = 0
     with open(voc_file_name) as f:
         for line in f:
-            word, count = line.split('\t')
+            word = line.strip()
             word_set.add(word)
-
-    for i in range(len(tags)):
-        word_set.add(tags[i])
 
     # print 'done'
     # print 'generating 4 gram from streaming input....'
@@ -57,9 +52,6 @@ def mapper():
             if len(ngram.split()) < 4:
                 continue
             print '%s\t%s' % (ngram,1)
-            total_ngrams += 1
-
-    print total_ngrams
 
 
 if __name__ == "__main__":
