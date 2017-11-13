@@ -17,6 +17,7 @@ def mapper():
     # build word vocabulary
     # print 'building vocabulary...'
     index = 0
+    total_ngrams = 0
     with open(voc_file_name) as f:
         for line in f:
             word, count = line.split(',')
@@ -56,7 +57,9 @@ def mapper():
             if len(ngram.split()) < 4:
                 continue
             print '%s,%s' % (ngram,1)
+            total_ngrams += 1
 
+    print total_ngrams
 
 def tokenize_doc(doc):
     return re.findall('\\w+', doc)
