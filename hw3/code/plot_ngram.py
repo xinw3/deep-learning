@@ -15,7 +15,7 @@ def plot_ngram():
     voc_file_name = 'output_ngram'
     count_list = []
 
-    threshold = 1
+    threshold = 2
 
     with open(voc_file_name) as f:
         for line in f:
@@ -26,7 +26,6 @@ def plot_ngram():
                 break
 
 
-    print count_list
     x_axis = np.arange(len(count_list))
 
     plt.plot(count_list)

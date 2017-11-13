@@ -10,7 +10,7 @@ def reducer():
 
     for line in sys.stdin:
         line = line.strip()
-        word,count = line.split('\t')
+        word,count = re.split('\t', line)
         count = int(count)
 
         if current_word == word:
@@ -23,7 +23,7 @@ def reducer():
 
     # print the first word
     if current_word == word:
-        print '%s,%s' % (current_word, current_count)
+        print '%s\t%s' % (current_word, current_count)
 
 
 if __name__ == "__main__":

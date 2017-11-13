@@ -61,8 +61,6 @@ def mapper():
 
     print total_ngrams
 
-def tokenize_doc(doc):
-    return re.findall('\\w+', doc)
 
 if __name__ == "__main__":
     mapper()
