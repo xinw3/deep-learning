@@ -13,6 +13,7 @@ def mapper():
     voc_file_name = 'output7997'
     word_dict = dict()
     tags = ['UNK', 'START', 'END']
+    N = 4       # N is the number of grams
     # build word vocabulary
     print 'building vocabulary...'
     index = 0
@@ -25,8 +26,19 @@ def mapper():
     for i in range(len(tags)):
         word_dict[index + i] = tags[i]
 
-    print word_dict
     print 'done'
+
+
+    print 'generating 4 gram from streaming input....'
+
+    for line in sys.stdin:
+        line = 'START ' + line
+        words = tokenize_doc(line)
+        words.append('END')
+        # print words_added
+
+def tokenize_doc(doc):
+    return re.findall('\\w+', doc)
 
 if __name__ == "__main__":
     mapper()
