@@ -8,9 +8,9 @@ def mapper():
         Input: train
     '''
     for line in sys.stdin:
-        words = tokenize_doc(line)
+        words = line.split()
         for word in words:
-            print '%s,%s' % (word.lower(),1)
+            print '%s\t%s' % (word.lower(),1)
 
 
 # tokenize the documents
