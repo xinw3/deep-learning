@@ -9,8 +9,11 @@ def reducer():
     word = None
 
     for line in sys.stdin:
-        line = line.strip()
-        word, count = line.split(',')
+        line_splited = line.split(',')
+        if len(line_splited) < 2:
+            continue
+        word = line_splited[0]
+        count = line_splited[1]
         count = int(count)
 
         if current_word == word:

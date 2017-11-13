@@ -32,7 +32,7 @@ def mapper():
         if (len(line) < 2):
             break
         line = 'START ' + line
-        words = tokenize_doc(line)
+        words = line.split(' ')
         words.append('END')
 
         stop_index = len(words) - N
@@ -52,6 +52,8 @@ def mapper():
                     ngram += " "
                 ngram += words[j]
                 count -= 1
+            if len(ngram) < 4:
+                continue
             print '%s,%s' % (ngram,1)
 
 
