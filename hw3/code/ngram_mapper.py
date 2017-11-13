@@ -15,7 +15,7 @@ def mapper():
     tags = ['UNK', 'START', 'END']
     N = 4       # N is the number of grams
     # build word vocabulary
-    print 'building vocabulary...'
+    # print 'building vocabulary...'
     index = 0
     with open(voc_file_name) as f:
         for line in f:
@@ -25,8 +25,8 @@ def mapper():
     for i in range(len(tags)):
         word_set.add(tags[i])
 
-    print 'done'
-    print 'generating 4 gram from streaming input....'
+    # print 'done'
+    # print 'generating 4 gram from streaming input....'
 
     for line in sys.stdin:
         if (len(line) < 2):
@@ -38,20 +38,20 @@ def mapper():
         stop_index = len(words) - N
         for i in range(stop_index + 1):
             if words[i] not in word_set:
-                continue
+                words[i] = 'UNK'
             ngram = words[i]
-            j = i
-            count = N - 1
-            while count > 0:
-                j += 1
+            j = i + 1
+            # count = N - 1
+            while j < i + N:
                 if j >= len(words):
                     break
                 if words[j] not in word_set:
-                    continue
-                if count >= 1:
+                    words[j] = 'UNK'
+                if j < i + N:
                     ngram += " "
                 ngram += words[j]
-                count -= 1
+                j += 1
+
 
             if len(ngram.split()) < 4:
                 continue
