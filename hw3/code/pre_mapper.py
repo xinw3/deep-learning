@@ -3,10 +3,6 @@
 import sys
 import re
 
-# TODO: make the data lower case
-
-# TODO:
-
 def mapper():
     for line in sys.stdin:
         words = tokenize_doc(line)
