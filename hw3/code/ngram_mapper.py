@@ -32,10 +32,23 @@ def mapper():
     print 'generating 4 gram from streaming input....'
 
     for line in sys.stdin:
+        if (len(line) < 2):
+            break
         line = 'START ' + line
         words = tokenize_doc(line)
         words.append('END')
-        # print words_added
+
+        stop_index = len(words) - N
+        for i in range(stop_index + 1):
+            ngram = ''
+            j = i
+            while j < i + N:
+                ngram += words[j]
+                if j < i + N - 1:
+                    ngram += " "
+                j += 1
+            print ngram
+
 
 def tokenize_doc(doc):
     return re.findall('\\w+', doc)
