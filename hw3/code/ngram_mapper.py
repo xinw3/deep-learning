@@ -11,7 +11,7 @@ def mapper():
                top 7997 words in the training file to build vocabulary
     '''
     voc_file_name = 'output7997'
-    word_dict = dict()
+    word_set = set()
     tags = ['UNK', 'START', 'END']
     N = 4       # N is the number of grams
     # build word vocabulary
@@ -20,15 +20,12 @@ def mapper():
     with open(voc_file_name) as f:
         for line in f:
             word, count = line.split(',')
-            word_dict[index] = word
-            index += 1
+            word_set.add(word)
 
     for i in range(len(tags)):
-        word_dict[index + i] = tags[i]
+        word_set.add(tags[i])
 
     print 'done'
-
-
     print 'generating 4 gram from streaming input....'
 
     for line in sys.stdin:
@@ -40,14 +37,22 @@ def mapper():
 
         stop_index = len(words) - N
         for i in range(stop_index + 1):
-            ngram = ''
+            if words[i] not in word_set:
+                continue
+            ngram = words[i]
             j = i
-            while j < i + N:
-                ngram += words[j]
-                if j < i + N - 1:
-                    ngram += " "
+            count = N - 1
+            while count > 0:
                 j += 1
-            print ngram
+                if j >= len(words):
+                    break
+                if words[j] not in word_set:
+                    continue
+                if count >= 1:
+                    ngram += " "
+                ngram += words[j]
+                count -= 1
+            print '%s,%s' % (ngram,1)
 
 
 def tokenize_doc(doc):
