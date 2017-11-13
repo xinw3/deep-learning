@@ -15,11 +15,11 @@ def plot_ngram():
     voc_file_name = 'output_ngram'
     count_list = []
 
-    threshold = 4
+    threshold = 1
 
     with open(voc_file_name) as f:
         for line in f:
-            word, count = line.split(',')
+            word, count = line.split('\t')
             count = int(count)
             count_list.append(count)
             if count < threshold:

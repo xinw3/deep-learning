@@ -38,7 +38,7 @@ def mapper():
 
         stop_index = len(words) - N
         for i in range(stop_index + 1):
-            if words[i] not in word_set:
+            if words[i].lower() not in word_set:
                 words[i] = 'UNK'
             ngram = words[i]
             j = i + 1
@@ -46,7 +46,7 @@ def mapper():
             while j < i + N:
                 if j >= len(words):
                     break
-                if words[j] not in word_set:
+                if words[j].lower() not in word_set:
                     words[j] = 'UNK'
                 if j < i + N:
                     ngram += " "
