@@ -10,7 +10,7 @@ def reducer():
 
     for line in sys.stdin:
         line = line.strip()
-        word, count = line.split(',')
+        word,count = line.split(',')
         count = int(count)
 
         if current_word == word:

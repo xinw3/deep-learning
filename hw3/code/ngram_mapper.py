@@ -52,6 +52,7 @@ def mapper():
                     ngram += " "
                 ngram += words[j]
                 count -= 1
+
             if len(ngram) < 4:
                 continue
             print '%s,%s' % (ngram,1)

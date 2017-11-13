@@ -5,7 +5,7 @@ import re
 
 def mapper():
     '''
-        Input: train.txt
+        Input: train
     '''
     for line in sys.stdin:
         words = tokenize_doc(line)
