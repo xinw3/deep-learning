@@ -20,7 +20,7 @@ def mapper():
     total_ngrams = 0
     with open(voc_file_name) as f:
         for line in f:
-            word, count = line.split(',')
+            word, count = line.split('\t')
             word_set.add(word)
 
     for i in range(len(tags)):
@@ -33,7 +33,7 @@ def mapper():
         if (len(line) < 2):
             break
         line = 'START ' + line
-        words = line.split(' ')
+        words = line.split()
         words.append('END')
 
         stop_index = len(words) - N
@@ -56,7 +56,7 @@ def mapper():
 
             if len(ngram.split()) < 4:
                 continue
-            print '%s,%s' % (ngram,1)
+            print '%s\t%s' % (ngram,1)
             total_ngrams += 1
 
     print total_ngrams
