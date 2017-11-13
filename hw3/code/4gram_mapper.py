@@ -8,20 +8,19 @@ def mapper():
         Input: output7997   (words,count)
                top 7997 words in the training file to build vocabulary
     '''
-    wordList = []
+    word_dict = dict()
+    tags = ['UNK', 'START', 'END']
     # build word vocabulary
+    index = 0
     for line in sys.stdin:
         word, count = line.split(',')
-        wordList.append(word)
+        word_dict[index] = word
+        index += 1
 
-    wordList.append('UNK')
-    wordList.append('START')
-    wordList.append('END')
-    print wordList
+    for i in range(len(tags)):
+        word_dict[index + i] = tags[i]
 
-# tokenize the documents
-def tokenize_doc(doc):
-    return re.findall('\\w+', doc)
+    print word_dict
 
 if __name__ == "__main__":
     mapper()
