@@ -7,8 +7,6 @@ import numpy as np
 
 def plot_ngram():
     '''
-        Build 4-grams for train.txt
-
         Input: output_ngram
                build list for 4-grams
     '''
