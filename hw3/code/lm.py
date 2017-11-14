@@ -23,8 +23,9 @@ def p32():
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
     # Load Validation Data
     x_valid, y_valid = load_data(val_file)    # (10031, 3), (10031, 1)
-    print x_valid
-    print y_valid
+
+    num_training_example = x_train.shape[0]
+    num_valid_example = x_valid.shape[0]
     n = x_train.shape[1]      # n = N - 1
 
     weights = {}
@@ -37,6 +38,22 @@ def p32():
     # initialize biases
     biases[1] = np.zeros((1, num_hid))
     biases[2] = np.zeros((1, voc_size))
+
+    # Creat lists for containing the cross entropy errors
+    training_error_list = []
+    valid_error_list = []
+
+    for e in range(epochs):
+        training_error = 0
+        valid_error = 0
+        i_train = 0
+        i_valid = 0
+        ''' Traninig '''
+        while i_train < num_training_example
+            j_train = i_train + batch_size
+            if j_train < num_training_example:
+                x = 
+
 
 
 def init_weights(n_in, n_out):
