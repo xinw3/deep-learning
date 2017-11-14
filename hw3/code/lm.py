@@ -28,13 +28,16 @@ def p32():
             index += 1
 
     # TODO: process input
-    x_train, y_train = load_data(train_file)
-    print x_train, y_train
+    # Load Training Data
+    x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
+    # Load Validation Data
+    x_valid, y_valid = load_data(val_file)    # (1000, 784), (1000, 1)
+
     #
 
 
 def load_data(data_file):
-    data_array = np.loadtxt(data_file, delimiter=' ')
+    data_array = np.loadtxt(data_file)
     np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
