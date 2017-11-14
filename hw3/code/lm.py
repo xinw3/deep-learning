@@ -7,6 +7,7 @@ epochs = 100
 eta = 0.01
 num_dim = 16
 num_hid = 128
+batch_size = 64
 
 def p32():
     # TODO: create a look up table for vocabulary
@@ -20,7 +21,7 @@ def p32():
             word = line.strip()
             word_dict[word] = index
             index += 1
-    print word_dict
+
     # TODO: process input
 
     #
