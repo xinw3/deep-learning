@@ -50,7 +50,7 @@ def p32():
         i_train = 0
         i_valid = 0
         ''' Traninig '''
-        while i_train < num_training_example
+        while i_train < num_training_example:
             j_train = i_train + batch_size
             x_indices = np.zeros((batch_size, n))
             if j_train < num_training_example:
@@ -82,12 +82,12 @@ def p32():
 
             ''' Backprop '''
             dl_do2 = _deriv_crossEnt_softmax(a2, y)
-            dl_db2 = dl_do2
+            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape)
             dl_dW2 = np.dot(a1.T, dl_do2)
             da1_do1 = _deriv_tanh(a1)
             dl_da1 = np.dot(dl_do2, weights[2].T)
             dl_do1 = np.multiply(da1_do1, dl_da1)
-            dl_db1 = dl_do1
+            dl_db1 = np.sum(dl_do1, axis=0)
             dl_dW1 = np.dot(x.T, dl_do1)
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
@@ -108,8 +108,49 @@ def p32():
                     weights[0][row] = \
                         sgd(weights[0][row], dl_dx[i][j*num_dim : (j+1)*num_dim], eta)
 
+            i_train = j_train
+
         ''' Validation '''
-        
+        while i_valid < num_valid_example:
+            j_valid = i_valid + batch_size
+            x_indices = np.zeros((batch_size, n))
+            if j_valid < num_valid_example:
+                x = np.zeros((batch_size, n * num_dim))
+                y = np.zeros((batch_size, voc_size))
+                x_indices = x_valid[i_valid:j_valid,:]
+                for i in range(batch_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_valid[i + i_valid]] = 1
+            else:
+                remaining_size = num_valid_example - i_valid
+                x = np.zeros((remaining_size, n * num_dim))
+                y = np.zeros((remaining_size, voc_size))
+                x_indices = x_valid[i_valid:num_valid_example, :]
+                for i in range(remaining_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_valid[i + i_valid]] = 1
+
+            ''' Feed Forward '''
+            o1 = feedforward(x, weights[1], biases[1])
+            a1 = tanh(o1)
+
+            o2 = feedforward(a1, weights[2], biases[2])
+            a2 = sigmoid(o2)
+
+            valid_error += cross_entropy(a2, y)
+            i_valid = j_valid
+
+        training_error_avg = training_error / num_training_example
+        valid_error_avg = valid_error / num_valid_example
+        # cross entropy error lists
+        training_error_list.append(training_error_avg)
+        valid_error_list.append(valid_error_avg)
+
+        print "##### Epoch %s ######\n eta=%s, hidden=%s \n training_error = %s, valid_error = %s\n" \
+            % (e + 1, eta, num_hid, training_error_avg, valid_error_avg)
+
 
 def sgd(params, gradient, eta):
     params -= eta * gradient
@@ -141,7 +182,7 @@ def cross_entropy(o, y):
         Output:
             cross entropy of this example
     """
-    bias = np.power(10, -10)
+    bias = np.power(10., -10)
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
 
 def sigmoid(x):
@@ -164,7 +205,7 @@ def feedforward(x, W, b):
         Output:
             a = b + np.dot(x, W)
     """
-    return b + np.dot(np.transpose(W), x)
+    return b + np.dot(x, W)
 
 def init_weights(n_in, n_out):
     '''
