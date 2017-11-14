@@ -14,15 +14,18 @@ def mapper():
             word_dict[word] = index
             index += 1
 
-    print word_dict
-
     for line in sys.stdin:
         ngram,count = line.strip().split('\t')
-        words = ngram.lower().split()
+        words = ngram.split()
         for i in range(len(words)):
-            count = word_dict[words[i]]
-            sys.stdout.write(str(count) + ' ')
-            if i == len(words) - 1:
+            if words[i] not in word_dict:
+                words[i] = 'UNK'
+
+            index = word_dict[words[i]]
+            sys.stdout.write(str(index))
+            if i < len(words) - 1:
+                sys.stdout.write(' ')
+            else:
                 sys.stdout.write('\n')
 
 if __name__ == "__main__":
