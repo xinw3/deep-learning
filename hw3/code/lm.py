@@ -13,21 +13,41 @@ train_file = 'train_ngram.txt'
 val_file = 'val_ngram.txt'
 
 voc_file_name = 'output8000'
+voc_size = 8000
+N = 4   # n-grams
 
 def p32():
-    # create a look up table for vocabulary
 
+    ''' Load Data '''
     # process input
-    # Load Training Data
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
     # Load Validation Data
-    x_valid, y_valid = load_data(val_file)    # (1000, 784), (1000, 1)
+    x_valid, y_valid = load_data(val_file)    # (10031, 3), (10031, 1)
+    print x_valid
+    print y_valid
+    n = x_train.shape[1]      # n = N - 1
 
-    # TODO: initializing weights
+    weights = {}
+    biases = {}
+    # initializing weights
+    weights[0] = init_weights(voc_size, num_dim)    # word_embedding_weights
+    weights[1] = init_weights(n * num_dim, num_hid) # embed_hid_weights
+    weights[2] = init_weights(num_hid, voc_size)    # hid_output_weights
 
+    # initialize biases
+    biases[1] = np.zeros((1, num_hid))
+    biases[2] = np.zeros((1, voc_size))
+
+
+def init_weights(n_in, n_out):
+    '''
+        Xavier initialization of weights
+    '''
+    a = np.sqrt(6. / (n_in + n_out))
+    return a * np.random.uniform(-1., 1., (n_in, n_out))
 
 def load_data(data_file):
-    data_array = np.loadtxt(data_file)
+    data_array = np.loadtxt(data_file, dtype='int32')
     np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
