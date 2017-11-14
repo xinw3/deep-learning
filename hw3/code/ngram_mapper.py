@@ -27,13 +27,13 @@ def mapper():
     for line in sys.stdin:
         if (len(line) < 2):
             break
-        line = 'START ' + line
+        line = 'START ' + line.lower()
         words = line.split()
         words.append('END')
 
         stop_index = len(words) - N
         for i in range(stop_index + 1):
-            if words[i].lower() not in word_set:
+            if words[i] not in word_set:
                 words[i] = 'UNK'
             ngram = words[i]
             j = i + 1
@@ -41,7 +41,7 @@ def mapper():
             while j < i + N:
                 if j >= len(words):
                     break
-                if words[j].lower() not in word_set:
+                if words[j] not in word_set:
                     words[j] = 'UNK'
                 if j < i + N:
                     ngram += " "
