@@ -17,23 +17,13 @@ voc_file_name = 'output8000'
 def p32():
     # create a look up table for vocabulary
 
-    word_dict = dict()  # ('word': index)
-    index = 0
-    # build word vocabulary
-    # print 'building vocabulary...'
-    with open(voc_file_name) as f:
-        for line in f:
-            word = line.strip()
-            word_dict[word] = index
-            index += 1
-
-    # TODO: process input
+    # process input
     # Load Training Data
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
     # Load Validation Data
     x_valid, y_valid = load_data(val_file)    # (1000, 784), (1000, 1)
 
-    #
+    # TODO: initializing weights
 
 
 def load_data(data_file):
