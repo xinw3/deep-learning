@@ -30,6 +30,7 @@ def p32():
 
     weights = {}
     biases = {}
+    ''' Initialization Parameters '''
     # initializing weights
     weights[0] = init_weights(voc_size, num_dim)    # word_embedding_weights
     weights[1] = init_weights(n * num_dim, num_hid) # embed_hid_weights
@@ -51,10 +52,119 @@ def p32():
         ''' Traninig '''
         while i_train < num_training_example
             j_train = i_train + batch_size
+            x_indices = np.zeros((batch_size, n))
             if j_train < num_training_example:
-                x = 
+                x = np.zeros((batch_size, n * num_dim))
+                y = np.zeros((batch_size, voc_size))
+                x_indices = x_train[i_train:j_train,:]
+                for i in range(batch_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_train[i + i_train]] = 1
+            else:
+                remaining_size = num_training_example - i_train
+                x = np.zeros((remaining_size, n * num_dim))
+                y = np.zeros((remaining_size, voc_size))
+                x_indices = x_train[i_train:num_training_example, :]
+                for i in range(remaining_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_train[i + i_train]] = 1
 
+            ''' Feed Forward '''
+            o1 = feedforward(x, weights[1], biases[1])
+            a1 = tanh(o1)
 
+            o2 = feedforward(a1, weights[2], biases[2])
+            a2 = sigmoid(o2)
+
+            training_error += cross_entropy(a2, y)
+
+            ''' Backprop '''
+            dl_do2 = _deriv_crossEnt_softmax(a2, y)
+            dl_db2 = dl_do2
+            dl_dW2 = np.dot(a1.T, dl_do2)
+            da1_do1 = _deriv_tanh(a1)
+            dl_da1 = np.dot(dl_do2, weights[2].T)
+            dl_do1 = np.multiply(da1_do1, dl_da1)
+            dl_db1 = dl_do1
+            dl_dW1 = np.dot(x.T, dl_do1)
+
+            # NOTE: W0 gradients, to the corresponding indices in x_indices
+            dl_dx = np.dot(dl_do1, weights[1].T)
+
+            ''' SGD Update '''
+            weights[2] = sgd(weights[2], dl_dW2, eta)
+            weights[1] = sgd(weights[1], dl_dW1, eta)
+
+            biases[2] = sgd(biases[2], dl_db2, eta)
+            biases[1] = sgd(biases[1], dl_db1, eta)
+            # weights[0] updates
+
+            actual_batch = x_indices.shape[0]
+            for i in range(actual_batch):
+                for j in range(n):
+                    row = x_indices[i][j]
+                    weights[0][row] = \
+                        sgd(weights[0][row], dl_dx[i][j*num_dim : (j+1)*num_dim], eta)
+
+        ''' Validation '''
+        
+
+def sgd(params, gradient, eta):
+    params -= eta * gradient
+    return params
+
+def _deriv_tanh(x):
+    '''
+        input: x is the output of tanh layer
+               i.e. x = tanh(o)
+    '''
+    return 1 - x ** 2
+
+def _deriv_crossEnt_softmax(f,y):
+    """
+        Input:
+            f: output of the softmax layer
+            y: indicator function(desired output)
+        Output:
+            partial derivative of softmax layer
+    """
+    return f - y
+
+# Calculate cross entropy
+def cross_entropy(o, y):
+    """
+        Input:
+            o: output of the neural nets (vector, output of softmax function)
+            y: desired output (number)
+        Output:
+            cross entropy of this example
+    """
+    bias = np.power(10, -10)
+    return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
+
+def sigmoid(x):
+    """
+        Compute sigmoid function:
+        return 1/(1 + exp(-x))
+    """
+    sig = 1. / (1. + np.exp(-x))
+    return sig
+
+def tanh(x):
+    return np.tanh(x)
+
+# Feedforward
+def feedforward(x, W, b):
+    """
+        Input:
+            W: weight of this layer
+            x: neuron inputs
+        Output:
+            a = b + np.dot(x, W)
+    """
+    return b + np.dot(np.transpose(W), x)
 
 def init_weights(n_in, n_out):
     '''

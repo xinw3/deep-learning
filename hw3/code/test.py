@@ -9,4 +9,6 @@ a = np.array([[3, 0, 0, 8, 3],
 
 y = [1, 4]
 
+result = a[y,:].flatten()
+print result
 print a[y,:]
