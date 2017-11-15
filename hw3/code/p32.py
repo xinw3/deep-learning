@@ -1,14 +1,15 @@
 import sys
 import numpy as np
 from copy import deepcopy
+import matplotlib.pyplot as plt
 
 
 # tunable parameters
-epochs = 100
-eta = 0.01
+epochs = 10
+eta = 0.1
 num_dim = 16
 num_hid = 128
-batch_size = 256
+batch_size = 512
 
 train_file = 'train_ngram_indices.txt'
 val_file = 'val_ngram_indices.txt'
@@ -181,7 +182,7 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
     plt.xlabel("# epochs")
     plt.ylabel("perplexity")
     plt.plot(val_ppl_list)
-    
+
     plt.show()
 
 def get_perplexity(val_total_words, p, y):
@@ -223,7 +224,7 @@ def cross_entropy(o, y):
             cross entropy of this example
     """
     bias = np.power(10., -10)
-    return -np.sum(y * np.log(o + bias))
+    return -np.sum(np.dot(y, np.log(o).T)) / y.shape[0]
 
 def softmax(x):
     """
