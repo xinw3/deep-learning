@@ -5,7 +5,7 @@ from copy import deepcopy
 
 # tunable parameters
 epochs = 100
-eta = 0.001
+eta = 0.1
 num_dim = 16
 num_hid = 128
 batch_size = 256
@@ -28,6 +28,7 @@ def p32():
     ''' Load Data '''
     # process input
     train_array = load_data(train_file)    # (86402, 3), (86402, 1)
+    x_train, y_train = sep_data(train_array)
     # Load Validation Data
     valid_array = load_data(val_file)    # (10360, 3), (10360, 1)
     x_valid, y_valid = sep_data(valid_array)
@@ -54,7 +55,6 @@ def p32():
     val_ppl_list = []
 
     for e in range(epochs):
-        x_train, y_train = sep_data(train_array)
         training_error = 0
         valid_error = 0
         i_train = 0
@@ -108,11 +108,10 @@ def p32():
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
 
-            for i in range(actual_batch):
-                for j in range(n):
-                    row = x_indices[i][j]
-                    weights[0][row] = \
-                        sgd(weights[0][row], dl_dx[i][j*num_dim : (j+1)*num_dim], eta)
+            for j in range(n):
+                row = x_indices[:, j]
+                weights[0][row,:] = \
+                    sgd(weights[0][row,:], dl_dx[i, j*num_dim:(j+1)*num_dim], eta)
 
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
