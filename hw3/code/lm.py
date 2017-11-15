@@ -1,10 +1,11 @@
 import sys
 import numpy as np
+from copy import deepcopy
 
 
 # tunable parameters
 epochs = 100
-eta = 0.01
+eta = 0.1
 num_dim = 16
 num_hid = 128
 batch_size = 512
@@ -144,7 +145,7 @@ def p32():
             a2 = softmax(o2)
 
             # get perplexity
-            val_perplexity += get_perplexity(val_total_words, a2)
+            val_perplexity += get_perplexity(val_total_words, a2, y)
             valid_error += cross_entropy(a2, y)
             i_valid = j_valid
 
@@ -173,12 +174,11 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
     plt.legend()
     plt.show()
 
-def get_perplexity(val_total_words, p):
+def get_perplexity(val_total_words, p, y):
     '''
         get the perplexity according to the input
     '''
-    bias = np.power(10., -10)
-    l = np.sum(np.log2(p)) / batch_size / val_total_words
+    l = np.sum(y * np.log2(p)) / p.shape[0] / val_total_words
     ppl = np.power(2., -l)
     return ppl
 
@@ -213,15 +213,16 @@ def cross_entropy(o, y):
             cross entropy of this example
     """
     bias = np.power(10., -10)
-    return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
+    return -np.sum(y * np.log(o + bias))
 
 def softmax(x):
     """
         Input: an array
         Output: an array of softmax function of each element
     """
-    x -= np.max(x)
-    return np.exp(x) / np.sum(np.exp(x))
+    x_copy = deepcopy(x)
+    x_copy -= np.max(x_copy)
+    return np.exp(x_copy) / np.sum(np.exp(x_copy))
 
 def tanh(x):
     return np.tanh(x)
