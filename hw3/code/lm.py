@@ -18,6 +18,9 @@ N = 4   # n-grams
 
 def p32():
 
+    val_total_words = 0
+    val_total_words = get_total_words()
+    print val_total_words
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
@@ -215,11 +218,20 @@ def init_weights(n_in, n_out):
     a = np.sqrt(6. / (n_in + n_out))
     return a * np.random.uniform(-1., 1., (n_in, n_out))
 
-def get_total_words(file):
+def get_total_words():
     '''
-        streaming through the file to get the total words in the file
+        streaming through the validation file to get the total word counts
+
+        input: linux pipeline
+        output: word count in the file
     '''
+    count = 0
     for line in sys.stdin:
+        words = line.split()
+        count += len(words)
+        count += 2  # add START and END tags to the counts
+
+    return count
 
 
 def load_data(data_file):
