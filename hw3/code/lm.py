@@ -7,7 +7,7 @@ epochs = 100
 eta = 0.01
 num_dim = 16
 num_hid = 128
-batch_size = 64
+batch_size = 256
 
 train_file = 'train_ngram.txt'
 val_file = 'val_ngram.txt'
@@ -82,13 +82,13 @@ def p32():
 
             ''' Backprop '''
             dl_do2 = _deriv_crossEnt_softmax(a2, y)
-            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape)
-            dl_dW2 = np.dot(a1.T, dl_do2)
+            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / batch_size
+            dl_dW2 = np.dot(a1.T, dl_do2) / batch_size
             da1_do1 = _deriv_tanh(a1)
             dl_da1 = np.dot(dl_do2, weights[2].T)
             dl_do1 = np.multiply(da1_do1, dl_da1)
-            dl_db1 = np.sum(dl_do1, axis=0)
-            dl_dW1 = np.dot(x.T, dl_do1)
+            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / batch_size
+            dl_dW1 = np.dot(x.T, dl_do1) / batch_size
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
             dl_dx = np.dot(dl_do1, weights[1].T)
@@ -96,17 +96,18 @@ def p32():
             ''' SGD Update '''
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
-
-            biases[2] = sgd(biases[2], dl_db2, eta)
-            biases[1] = sgd(biases[1], dl_db1, eta)
             # weights[0] updates
-
             actual_batch = x_indices.shape[0]
             for i in range(actual_batch):
                 for j in range(n):
                     row = x_indices[i][j]
                     weights[0][row] = \
                         sgd(weights[0][row], dl_dx[i][j*num_dim : (j+1)*num_dim], eta)
+
+            biases[2] = sgd(biases[2], dl_db2, eta)
+            biases[1] = sgd(biases[1], dl_db1, eta)
+
+
 
             i_train = j_train
 
@@ -148,8 +149,8 @@ def p32():
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
 
-        print "##### Epoch %s ######\n eta=%s, hidden=%s \n training_error = %s, valid_error = %s\n" \
-            % (e + 1, eta, num_hid, training_error_avg, valid_error_avg)
+        print "##### Epoch %s ######\n eta=%s, hidden=%s, batch_size=%s \n training_error = %s, valid_error = %s\n" \
+            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg)
 
 
 def sgd(params, gradient, eta):
@@ -213,6 +214,13 @@ def init_weights(n_in, n_out):
     '''
     a = np.sqrt(6. / (n_in + n_out))
     return a * np.random.uniform(-1., 1., (n_in, n_out))
+
+def get_total_words(file):
+    '''
+        streaming through the file to get the total words in the file
+    '''
+    for line in sys.stdin:
+
 
 def load_data(data_file):
     data_array = np.loadtxt(data_file, dtype='int32')
