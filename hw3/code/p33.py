@@ -5,19 +5,19 @@ from copy import deepcopy
 
 # tunable parameters
 epochs = 100
-eta = 0.1
+eta = 0.001
 num_dim = 16
 num_hid = 128
-batch_size = 512
+batch_size = 256
 
-train_file = 'train_ngram.txt'
-val_file = 'val_ngram.txt'
+train_file = 'train_ngram_indices.txt'
+val_file = 'val_ngram_indices.txt'
 
 voc_file_name = 'output8000'
 voc_size = 8000
 N = 4   # n-grams
 
-def p32():
+def p33():
 
     val_total_words = 0
     val_total_words = get_total_words()
@@ -86,15 +86,16 @@ def p32():
 
             training_error += cross_entropy(a2, y)
 
+            actual_batch = x_indices.shape[0]
             ''' Backprop '''
             dl_do2 = _deriv_crossEnt_softmax(a2, y)
-            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / batch_size
-            dl_dW2 = np.dot(a1.T, dl_do2) / batch_size
+            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / actual_batch
+            dl_dW2 = np.dot(a1.T, dl_do2) / actual_batch
             da1_do1 = _deriv_tanh(a1)
             dl_da1 = np.dot(dl_do2, weights[2].T)
             dl_do1 = np.multiply(da1_do1, dl_da1)
-            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / batch_size
-            dl_dW1 = np.dot(x.T, dl_do1) / batch_size
+            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / actual_batch
+            dl_dW1 = np.dot(x.T, dl_do1) / actual_batch
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
             dl_dx = np.dot(dl_do1, weights[1].T)
@@ -103,7 +104,7 @@ def p32():
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
-            actual_batch = x_indices.shape[0]
+
             for i in range(actual_batch):
                 for j in range(n):
                     row = x_indices[i][j]
@@ -178,7 +179,7 @@ def get_perplexity(val_total_words, p, y):
     '''
         get the perplexity according to the input
     '''
-    l = np.sum(y * np.log2(p)) / p.shape[0] / val_total_words
+    l = np.sum(np.dot(y, np.log2(p).T)) / y.shape[0] / val_total_words
     ppl = np.power(2., -l)
     return ppl
 
@@ -275,6 +276,6 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-p32": p32}
+func_arg = {"-p33": p33}
 if __name__ == "__main__":
     func_arg[sys.argv[1]]()

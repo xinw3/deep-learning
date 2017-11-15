@@ -15,8 +15,7 @@ def mapper():
             index += 1
 
     for line in sys.stdin:
-        ngram,count = line.strip().split('\t')
-        words = ngram.split()
+        words = line.strip().split()
         for i in range(len(words)):
             if words[i] not in word_dict:
                 words[i] = 'UNK'
