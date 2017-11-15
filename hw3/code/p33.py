@@ -276,6 +276,5 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
-func_arg = {"-p33": p33}
 if __name__ == "__main__":
-    func_arg[sys.argv[1]]()
+    p33()
