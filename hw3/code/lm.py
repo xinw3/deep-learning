@@ -20,7 +20,7 @@ def p32():
 
     val_total_words = 0
     val_total_words = get_total_words()
-    print val_total_words
+    print "total words in val %s" % (val_total_words)
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
@@ -46,12 +46,14 @@ def p32():
     # Creat lists for containing the cross entropy errors
     training_error_list = []
     valid_error_list = []
+    val_ppl_list = []
 
     for e in range(epochs):
         training_error = 0
         valid_error = 0
         i_train = 0
         i_valid = 0
+        val_perplexity = 0
         ''' Traninig '''
         while i_train < num_training_example:
             j_train = i_train + batch_size
@@ -110,8 +112,6 @@ def p32():
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
 
-
-
             i_train = j_train
 
         ''' Validation '''
@@ -143,18 +143,33 @@ def p32():
             o2 = feedforward(a1, weights[2], biases[2])
             a2 = sigmoid(o2)
 
+            # get perplexity
+            val_perplexity += get_perplexity(val_total_words, a2)
             valid_error += cross_entropy(a2, y)
             i_valid = j_valid
 
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
+        val_ppl_avg = val_perplexity / num_valid_example
+
         # cross entropy error lists
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
+        val_ppl_list.append(val_ppl_avg)
 
-        print "##### Epoch %s ######\n eta=%s, hidden=%s, batch_size=%s \n training_error = %s, valid_error = %s\n" \
-            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg)
+        print "##### Epoch %s ######\n \
+eta=%s, hidden=%s, batch_size=%s \n \
+training_error = %s, valid_error = %s, perplexity=%s\n" \
+            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl_avg)
 
+def get_perplexity(val_total_words, p):
+    '''
+        get the perplexity according to the input
+    '''
+    bias = np.power(10., -10)
+    l = np.sum(np.log2(p + bias)) / val_total_words
+    ppl = np.power(2., -l)
+    return ppl
 
 def sgd(params, gradient, eta):
     params -= eta * gradient
