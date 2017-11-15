@@ -27,13 +27,14 @@ def p32():
     print "total words in val %s" % (val_total_words)
     ''' Load Data '''
     # process input
-    x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
+    train_array = load_data(train_file)    # (86402, 3), (86402, 1)
     # Load Validation Data
-    x_valid, y_valid = load_data(val_file)    # (10031, 3), (10031, 1)
+    valid_array = load_data(val_file)    # (10360, 3), (10360, 1)
+    x_valid, y_valid = sep_data(valid_array)
 
-    num_training_example = x_train.shape[0]
+    num_training_example = train_array.shape[0]
     num_valid_example = x_valid.shape[0]
-    n = x_train.shape[1]      # n = N - 1
+    n = N - 1      # n = N - 1
 
     weights = {}
     biases = {}
@@ -53,6 +54,7 @@ def p32():
     val_ppl_list = []
 
     for e in range(epochs):
+        x_train, y_train = sep_data(train_array)
         training_error = 0
         valid_error = 0
         i_train = 0
@@ -263,18 +265,25 @@ def get_total_words():
     return count
 
 
-def load_data(data_file):
-    data_array = np.loadtxt(data_file, dtype='int32')
+def sep_data(data_array):
+    '''
+        separate data into 1,2,3, label
+    '''
     np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
-
     x = data_array[:,0:col - 1]
     y = data_array[:, col - 1].reshape(row, 1)
-
-    # Test
-    print "### Load Data File %s ###" % data_file
+    print "shuffling data...."
     print x.shape, y.shape
     return x, y
+
+
+def load_data(data_file):
+    data_array = np.loadtxt(data_file, dtype='int32')
+    # Test
+    print "### Load Data File %s ###" % data_file
+    return data_array
+
 if __name__ == "__main__":
     p32()
