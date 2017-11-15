@@ -7,7 +7,7 @@ epochs = 100
 eta = 0.01
 num_dim = 16
 num_hid = 128
-batch_size = 256
+batch_size = 512
 
 train_file = 'train_ngram.txt'
 val_file = 'val_ngram.txt'
@@ -81,7 +81,7 @@ def p32():
             a1 = tanh(o1)
 
             o2 = feedforward(a1, weights[2], biases[2])
-            a2 = sigmoid(o2)
+            a2 = softmax(o2)
 
             training_error += cross_entropy(a2, y)
 
@@ -141,7 +141,7 @@ def p32():
             a1 = tanh(o1)
 
             o2 = feedforward(a1, weights[2], biases[2])
-            a2 = sigmoid(o2)
+            a2 = softmax(o2)
 
             # get perplexity
             val_perplexity += get_perplexity(val_total_words, a2)
@@ -150,7 +150,7 @@ def p32():
 
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
-        val_ppl_avg = val_perplexity / num_valid_example
+        val_ppl_avg = val_perplexity
 
         # cross entropy error lists
         training_error_list.append(training_error_avg)
@@ -162,12 +162,23 @@ eta=%s, hidden=%s, batch_size=%s \n \
 training_error = %s, valid_error = %s, perplexity=%s\n" \
             % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl_avg)
 
+    ''' Visualization '''
+    # Cross Entropy
+    plt.xlabel("# epochs")
+    plt.ylabel("error")
+    plt.plot(training_error_list, label='training error')
+    plt.plot(valid_error_list, label='valid error')
+    plt.title('Cross Entropy\n (learning rate=%s, hidden=%s)'\
+            % (eta, num_hid))
+    plt.legend()
+    plt.show()
+
 def get_perplexity(val_total_words, p):
     '''
         get the perplexity according to the input
     '''
     bias = np.power(10., -10)
-    l = np.sum(np.log2(p + bias)) / val_total_words
+    l = np.sum(np.log2(p)) / batch_size / val_total_words
     ppl = np.power(2., -l)
     return ppl
 
@@ -204,13 +215,13 @@ def cross_entropy(o, y):
     bias = np.power(10., -10)
     return np.sum(np.nan_to_num(-y * np.log(o + bias) - (1-y) * np.log(1-o + bias)))
 
-def sigmoid(x):
+def softmax(x):
     """
-        Compute sigmoid function:
-        return 1/(1 + exp(-x))
+        Input: an array
+        Output: an array of softmax function of each element
     """
-    sig = 1. / (1. + np.exp(-x))
-    return sig
+    x -= np.max(x)
+    return np.exp(x) / np.sum(np.exp(x))
 
 def tanh(x):
     return np.tanh(x)
