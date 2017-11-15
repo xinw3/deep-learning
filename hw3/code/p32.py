@@ -5,7 +5,7 @@ from copy import deepcopy
 
 # tunable parameters
 epochs = 100
-eta = 0.1
+eta = 0.01
 num_dim = 16
 num_hid = 128
 batch_size = 256
@@ -96,12 +96,12 @@ def p32():
             dl_do2 = _deriv_crossEnt_softmax(a2, y)
             dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / actual_batch
             dl_dW2 = np.dot(a1.T, dl_do2) / actual_batch
-            dl_do1 = np.dot(dl_do2, weights[2].T)
+            dl_do1 = np.dot(dl_do2, weights[2].T) / actual_batch
             dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / actual_batch
             dl_dW1 = np.dot(x.T, dl_do1) / actual_batch
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
-            dl_dx = np.dot(dl_do1, weights[1].T)
+            dl_dx = np.dot(dl_do1, weights[1].T) / actual_batch
 
             ''' SGD Update '''
             weights[2] = sgd(weights[2], dl_dW2, eta)
@@ -168,6 +168,7 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
 
     ''' Visualization '''
     # Cross Entropy
+    plt.figure(1)
     plt.xlabel("# epochs")
     plt.ylabel("error")
     plt.plot(training_error_list, label='training error')
@@ -175,6 +176,12 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
     plt.title('Cross Entropy\n (learning rate=%s, hidden=%s)'\
             % (eta, num_hid))
     plt.legend()
+    # Perplexity
+    plt.figure(2)
+    plt.xlabel("# epochs")
+    plt.ylabel("perplexity")
+    plt.plot(val_ppl_list)
+    
     plt.show()
 
 def get_perplexity(val_total_words, p, y):
