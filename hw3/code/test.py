@@ -7,7 +7,7 @@ a = np.array([[3, 0, 0, 8, 3],
               [3, 9, 1, 5, 5]
             ])
 
-y = [1, 4]
+y = [1, 3, 4]
 
 result = a[y,:].flatten()
 print result

@@ -106,11 +106,10 @@ def p33():
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
 
-            for i in range(actual_batch):
-                for j in range(n):
-                    row = x_indices[i][j]
-                    weights[0][row] = \
-                        sgd(weights[0][row], dl_dx[i][j*num_dim : (j+1)*num_dim], eta)
+            for j in range(n):
+                row = x_indices[:, j]
+                weights[0][row,:] = \
+                    sgd(weights[0][row,:], dl_dx[:, j*num_dim:(j+1)*num_dim], eta)
 
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
@@ -167,6 +166,7 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
 
     ''' Visualization '''
     # Cross Entropy
+    plt.figure(1)
     plt.xlabel("# epochs")
     plt.ylabel("error")
     plt.plot(training_error_list, label='training error')
@@ -174,6 +174,12 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
     plt.title('Cross Entropy\n (learning rate=%s, hidden=%s)'\
             % (eta, num_hid))
     plt.legend()
+    # Perplexity
+    plt.figure(2)
+    plt.xlabel("# epochs")
+    plt.ylabel("perplexity")
+    plt.plot(val_ppl_list)
+
     plt.show()
 
 def get_perplexity(val_total_words, p, y):
