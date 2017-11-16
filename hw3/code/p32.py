@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # tunable parameters
 epochs = 10
-eta = 0.1
+eta = 0.01
 num_dim = 16
 num_hid = 128
 batch_size = 512
@@ -109,11 +109,11 @@ def p32():
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
-
-            for j in range(n):
-                row = x_indices[:, j]
-                weights[0][row,:] = \
-                    sgd(weights[0][row,:], dl_dx[:, j*num_dim:(j+1)*num_dim], eta)
+            for i in range(actual_batch):
+                for j in range(n):
+                    row = x_indices[i, j]
+                    weights[0][row,:] = \
+                        sgd(weights[0][row,:], dl_dx[i, j*num_dim:(j+1)*num_dim], eta)
 
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
@@ -122,24 +122,40 @@ def p32():
 
 
         ''' Validation '''
-        x = np.zeros((num_valid_example, n * num_dim))
-        y = np.zeros((num_valid_example, voc_size))
+        while i_valid < num_valid_example:
+            j_valid = i_valid + batch_size
+            x_indices = np.zeros((batch_size, n))
+            if j_valid < num_valid_example:
+                x = np.zeros((batch_size, n * num_dim))
+                y = np.zeros((batch_size, voc_size))
+                x_indices = x_valid[i_valid:j_valid,:]
+                for i in range(batch_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_valid[i + i_valid]] = 1
+            else:
+                remaining_size = num_valid_example - i_valid
+                x = np.zeros((remaining_size, n * num_dim))
+                y = np.zeros((remaining_size, voc_size))
+                x_indices = x_valid[i_valid:num_valid_example, :]
+                for i in range(remaining_size):
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
+                    y[i,y_valid[i + i_valid]] = 1
 
-        for i in range(num_valid_example):
-            x[i,:] = weights[0][x_valid[i,:],:].flatten()
-            y[i,y_valid[i]] = 1
+            ''' Feed Forward '''
+            o1 = feedforward(x, weights[1], biases[1])
+            a1 = o1
 
-        ''' Feed Forward '''
-        o1 = feedforward(x, weights[1], biases[1])
-        a1 = o1
+            o2 = feedforward(a1, weights[2], biases[2])
+            a2 = softmax(o2)
 
-        o2 = feedforward(a1, weights[2], biases[2])
-        a2 = softmax(o2)
+            # get perplexity
+            val_perplexity += get_perplexity(val_total_words, a2, y)
+            valid_error += cross_entropy(a2, y)
+            i_valid = j_valid
 
         # get perplexity
-        val_perplexity = get_perplexity(val_total_words, a2, y)
-        valid_error = cross_entropy(a2, y)
-
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
         val_ppl_avg = val_perplexity
@@ -172,7 +188,7 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
 
     plt.show()
 
-# TODO: Change to ngram
+
 def get_perplexity(val_total_words, p, y):
     '''
         get the perplexity according to the input
