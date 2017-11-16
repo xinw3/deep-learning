@@ -42,7 +42,7 @@ def p32():
     biases = {}
     ''' Initialization Parameters '''
     # initializing weights
-    weights[0] = init_weights(voc_size, num_dim)    # word_embedding_weights
+    weights[0] = np.random.normal(0, 0.1, (voc_size, num_dim))    # word_embedding_weights
     weights[1] = init_weights(n * num_dim, num_hid) # embed_hid_weights
     weights[2] = init_weights(num_hid, voc_size)    # hid_output_weights
 
@@ -84,6 +84,9 @@ def p32():
                     x[i,:] = temp.flatten()
                     y[i,y_train[i + i_train]] = 1
 
+
+            print "training..."
+            print "feed forward..."
             ''' Feed Forward '''
             o1 = feedforward(x, weights[1], biases[1])
             a1 = o1
@@ -95,17 +98,18 @@ def p32():
 
             actual_batch = x_indices.shape[0]
             ''' Backprop '''
-            dl_do2 = _deriv_crossEnt_softmax(a2, y)
-            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / actual_batch
-            dl_dW2 = np.dot(a1.T, dl_do2) / actual_batch
-            dl_do1 = np.dot(dl_do2, weights[2].T) / actual_batch
-            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / actual_batch
-            dl_dW1 = np.dot(x.T, dl_do1) / actual_batch
+            dl_do2 = _deriv_crossEnt_softmax(a2, y) / actual_batch
+            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape)
+            dl_dW2 = np.dot(a1.T, dl_do2)
+            dl_do1 = np.dot(dl_do2, weights[2].T)
+            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape)
+            dl_dW1 = np.dot(x.T, dl_do1)
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
-            dl_dx = np.dot(dl_do1, weights[1].T) / actual_batch
+            dl_dx = np.dot(dl_do1, weights[1].T)
 
             ''' SGD Update '''
+            print "sgd update..."
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
@@ -118,6 +122,15 @@ def p32():
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
 
+            print "gradient checking..."
+            print "dl_dW2", dl_dW2
+            print "dl_dW1", dl_dW1
+            print "dl_dW1", dl_dW1
+            print "weights[0]", weights[0]
+            print "weights[1]", weights[1]
+            print "weights[2]", weights[2]
+            print "biases[2]", biases[2]
+            print "biases[1]", biases[1]
             i_train = j_train
 
 
