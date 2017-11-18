@@ -42,7 +42,7 @@ def p32():
     biases = {}
     ''' Initialization Parameters '''
     # initializing weights
-    weights[0] = np.random.normal(0, 0.1, (voc_size, num_dim))    # word_embedding_weights
+    weights[0] = init_weights(voc_size, num_dim)    # word_embedding_weights
     weights[1] = init_weights(n * num_dim, num_hid) # embed_hid_weights
     weights[2] = init_weights(num_hid, voc_size)    # hid_output_weights
 
@@ -84,9 +84,6 @@ def p32():
                     x[i,:] = temp.flatten()
                     y[i,y_train[i + i_train]] = 1
 
-
-            print "training..."
-            print "feed forward..."
             ''' Feed Forward '''
             o1 = feedforward(x, weights[1], biases[1])
             a1 = o1
@@ -122,15 +119,6 @@ def p32():
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
 
-            print "gradient checking..."
-            print "dl_dW2", dl_dW2
-            print "dl_dW1", dl_dW1
-            print "dl_dW1", dl_dW1
-            print "weights[0]", weights[0]
-            print "weights[1]", weights[1]
-            print "weights[2]", weights[2]
-            print "biases[2]", biases[2]
-            print "biases[1]", biases[1]
             i_train = j_train
 
 
