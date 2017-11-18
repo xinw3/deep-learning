@@ -90,6 +90,7 @@ def p32():
             o2 = feedforward(a1, weights[2], biases[2]) # batch * voc
             a2 = softmax(o2)    # batch * voc
             training_error += cross_entropy(a2, y)
+            train_ppl += get_perplexity(num_training_example, a2, y)
 
             actual_batch = x_indices.shape[0]
             ''' Backprop '''
@@ -115,10 +116,7 @@ def p32():
 
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
-
-            train_ppl += get_perplexity(num_training_example, a2, y)
             i_train = j_train
-
 
         ''' Validation '''
         while i_valid < num_valid_example:
@@ -161,6 +159,7 @@ def p32():
         # cross entropy error lists
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
+        train_ppl_list.append(train_ppl)
         val_ppl_list.append(val_ppl)
 
         print "##### Epoch %s ######\n \
@@ -182,7 +181,8 @@ training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
     plt.figure(2)
     plt.xlabel("# epochs")
     plt.ylabel("perplexity")
-    plt.plot(val_ppl_list)
+    plt.plot(train_ppl_list, label='training perplexity')
+    plt.plot(val_ppl_list, label='validation perplexity')
 
     plt.show()
 
