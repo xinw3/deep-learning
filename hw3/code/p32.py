@@ -68,10 +68,8 @@ def p32():
             if j_train < num_training_example:
                 x_indices = x_train[i_train:j_train,:]
                 for i in range(batch_size):
-                    for j in range(n):
-                        x[i,j*num_dim:(j+1)*num_dim] = \
-                            weights[0][x_indices[i,j],:]
-
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
                     y[i,y_train[i + i_train]] = 1
             else:
                 remaining_size = num_training_example - i_train
@@ -79,18 +77,16 @@ def p32():
                 y = np.zeros((remaining_size, voc_size))
                 x_indices = x_train[i_train:num_training_example, :]
                 for i in range(remaining_size):
-                    for j in range(n):
-                        x[i,j*num_dim:(j+1)*num_dim] = \
-                            weights[0][x_indices[i,j],:]
+                    temp = weights[0][x_indices[i,:],:]
+                    x[i,:] = temp.flatten()
                     y[i,y_train[i + i_train]] = 1
 
             ''' Feed Forward '''
-            o1 = feedforward(x, weights[1], biases[1])
-            a1 = o1
+            o1 = feedforward(x, weights[1], biases[1])  # batch * num_hid
+            a1 = o1 # batch * num_hid
 
-            o2 = feedforward(a1, weights[2], biases[2])
-            a2 = softmax(o2)
-
+            o2 = feedforward(a1, weights[2], biases[2]) # batch * voc
+            a2 = softmax(o2)    # batch * voc
             training_error += cross_entropy(a2, y)
 
             actual_batch = x_indices.shape[0]
@@ -228,7 +224,7 @@ def cross_entropy(o, y):
             cross entropy of this example
     """
     bias = np.power(10., -10)
-    return -np.sum(np.dot(y, np.log(o).T)) / y.shape[0]
+    return -np.sum(y * np.log(o))
 
 def softmax(x):
     """
@@ -236,8 +232,8 @@ def softmax(x):
         Output: an array of softmax function of each element
     """
     x_copy = deepcopy(x)
-    x_copy -= np.max(x_copy)
-    return np.exp(x_copy) / np.sum(np.exp(x_copy))
+    x_copy -= x_copy.max(1).reshape(x_copy.shape[0],1)
+    return np.exp(x_copy) / np.sum(np.exp(x_copy), axis=1).reshape(x_copy.shape[0],1)
 
 def tanh(x):
     return np.tanh(x)
