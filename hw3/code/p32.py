@@ -28,13 +28,10 @@ def p32():
     print "total words in val %s" % (val_total_words)
     ''' Load Data '''
     # process input
-    train_array = load_data(train_file)    # (86402, 3), (86402, 1)
-    x_train, y_train = sep_data(train_array)
-    # Load Validation Data
-    valid_array = load_data(val_file)    # (10360, 3), (10360, 1)
-    x_valid, y_valid = sep_data(valid_array)
+    x_train, y_train = load_data(train_file)    # (86402, 3), (86402, 1)
+    x_valid, y_valid = load_data(val_file)    # (10360, 3), (10360, 1)
 
-    num_training_example = train_array.shape[0]
+    num_training_example = x_train.shape[0]
     num_valid_example = x_valid.shape[0]
     n = N - 1      # n = N - 1
 
@@ -71,8 +68,10 @@ def p32():
             if j_train < num_training_example:
                 x_indices = x_train[i_train:j_train,:]
                 for i in range(batch_size):
-                    temp = weights[0][x_indices[i,:],:]
-                    x[i,:] = temp.flatten()
+                    for j in range(n):
+                        x[i,j*num_dim:(j+1)*num_dim] = \
+                            weights[0][x_indices[i,j],:]
+
                     y[i,y_train[i + i_train]] = 1
             else:
                 remaining_size = num_training_example - i_train
@@ -80,8 +79,9 @@ def p32():
                 y = np.zeros((remaining_size, voc_size))
                 x_indices = x_train[i_train:num_training_example, :]
                 for i in range(remaining_size):
-                    temp = weights[0][x_indices[i,:],:]
-                    x[i,:] = temp.flatten()
+                    for j in range(n):
+                        x[i,j*num_dim:(j+1)*num_dim] = \
+                            weights[0][x_indices[i,j],:]
                     y[i,y_train[i + i_train]] = 1
 
             ''' Feed Forward '''
@@ -106,7 +106,6 @@ def p32():
             dl_dx = np.dot(dl_do1, weights[1].T)
 
             ''' SGD Update '''
-            print "sgd update..."
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
@@ -277,25 +276,19 @@ def get_total_words():
     return count
 
 
-def sep_data(data_array):
-    '''
-        separate data into 1,2,3, label
-    '''
-    np.random.shuffle(data_array)
-    row = data_array.shape[0]
-    col = data_array.shape[1]
-    x = data_array[:,0:col-1]
-    y = data_array[:, col-1].reshape(row, 1)
-    print "shuffling data...."
-    print x.shape, y.shape
-    return x, y
-
-
 def load_data(data_file):
     data_array = np.loadtxt(data_file, dtype='int32')
+    # np.random.shuffle(data_array)
+    row = data_array.shape[0]
+    col = data_array.shape[1]
+
+    x = data_array[:,0:col - 1]
+    y = data_array[:, col - 1].reshape(row, 1)
+
     # Test
     print "### Load Data File %s ###" % data_file
-    return data_array
+    print x.shape, y.shape
+    return x, y
 
 if __name__ == "__main__":
     p32()
