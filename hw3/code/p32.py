@@ -23,9 +23,6 @@ def p32():
         language model without non-linear layer after hidden
     '''
 
-    # val_total_words = 0
-    # val_total_words = get_total_words()
-    # print "total words in val %s" % (val_total_words)
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (86402, 3), (86402, 1)
@@ -152,7 +149,6 @@ def p32():
             valid_error += cross_entropy(a2, y)
             i_valid = j_valid
 
-        # get perplexity
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
 

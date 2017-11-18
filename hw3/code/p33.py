@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 
 # tunable parameters
-epochs = 100
-eta = 0.001
+epochs = 10
+eta = 0.1
 num_dim = 16
 num_hid = 128
 batch_size = 256
@@ -20,13 +20,9 @@ N = 4   # n-grams
 
 def p33():
 
-    val_total_words = 0
-    val_total_words = get_total_words()
-    print "total words in val %s" % (val_total_words)
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
-    # Load Validation Data
     x_valid, y_valid = load_data(val_file)    # (10031, 3), (10031, 1)
 
     num_training_example = x_train.shape[0]
@@ -49,20 +45,22 @@ def p33():
     training_error_list = []
     valid_error_list = []
     val_ppl_list = []
+    train_ppl_list = []
 
     for e in range(epochs):
         training_error = 0
         valid_error = 0
         i_train = 0
         i_valid = 0
-        val_perplexity = 0
+        val_ppl = 0
+        train_ppl = 0
         ''' Traninig '''
         while i_train < num_training_example:
             j_train = i_train + batch_size
             x_indices = np.zeros((batch_size, n))
+            x = np.zeros((batch_size, n * num_dim))
+            y = np.zeros((batch_size, voc_size))
             if j_train < num_training_example:
-                x = np.zeros((batch_size, n * num_dim))
-                y = np.zeros((batch_size, voc_size))
                 x_indices = x_train[i_train:j_train,:]
                 for i in range(batch_size):
                     temp = weights[0][x_indices[i,:],:]
@@ -86,17 +84,18 @@ def p33():
             a2 = softmax(o2)
 
             training_error += cross_entropy(a2, y)
+            train_ppl += get_perplexity(num_training_example, a2, y)
 
             actual_batch = x_indices.shape[0]
             ''' Backprop '''
-            dl_do2 = _deriv_crossEnt_softmax(a2, y)
-            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape) / actual_batch
-            dl_dW2 = np.dot(a1.T, dl_do2) / actual_batch
+            dl_do2 = _deriv_crossEnt_softmax(a2, y) / actual_batch
+            dl_db2 = np.sum(dl_do2, axis=0).reshape(biases[2].shape)
+            dl_dW2 = np.dot(a1.T, dl_do2)
             da1_do1 = _deriv_tanh(a1)
             dl_da1 = np.dot(dl_do2, weights[2].T)
             dl_do1 = np.multiply(da1_do1, dl_da1)
-            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape) / actual_batch
-            dl_dW1 = np.dot(x.T, dl_do1) / actual_batch
+            dl_db1 = np.sum(dl_do1, axis=0).reshape(biases[1].shape)
+            dl_dW1 = np.dot(x.T, dl_do1)
 
             # NOTE: W0 gradients, to the corresponding indices in x_indices
             dl_dx = np.dot(dl_do1, weights[1].T)
@@ -105,11 +104,11 @@ def p33():
             weights[2] = sgd(weights[2], dl_dW2, eta)
             weights[1] = sgd(weights[1], dl_dW1, eta)
             # weights[0] updates
-
-            for j in range(n):
-                row = x_indices[:, j]
-                weights[0][row,:] = \
-                    sgd(weights[0][row,:], dl_dx[:, j*num_dim:(j+1)*num_dim], eta)
+            for i in range(actual_batch):
+                for j in range(n):
+                    row = x_indices[i, j]
+                    weights[0][row,:] = \
+                        sgd(weights[0][row,:], dl_dx[i, j*num_dim:(j+1)*num_dim], eta)
 
             biases[2] = sgd(biases[2], dl_db2, eta)
             biases[1] = sgd(biases[1], dl_db1, eta)
@@ -146,23 +145,23 @@ def p33():
             a2 = softmax(o2)
 
             # get perplexity
-            val_perplexity += get_perplexity(val_total_words, a2, y)
+            val_ppl += get_perplexity(num_valid_example, a2, y)
             valid_error += cross_entropy(a2, y)
             i_valid = j_valid
 
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
-        val_ppl_avg = val_perplexity
 
         # cross entropy error lists
         training_error_list.append(training_error_avg)
         valid_error_list.append(valid_error_avg)
-        val_ppl_list.append(val_ppl_avg)
+        train_ppl_list.append(train_ppl)
+        val_ppl_list.append(val_ppl)
 
         print "##### Epoch %s ######\n \
 eta=%s, hidden=%s, batch_size=%s \n \
-training_error = %s, valid_error = %s, perplexity=%s\n" \
-            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl_avg)
+training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
+            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
 
     ''' Visualization '''
     # Cross Entropy
@@ -178,15 +177,19 @@ training_error = %s, valid_error = %s, perplexity=%s\n" \
     plt.figure(2)
     plt.xlabel("# epochs")
     plt.ylabel("perplexity")
-    plt.plot(val_ppl_list)
+    plt.plot(train_ppl_list, label='training perplexity')
+    plt.plot(val_ppl_list, label='validation perplexity')
 
     plt.show()
 
 def get_perplexity(val_total_words, p, y):
     '''
         get the perplexity according to the input
+        input:
+            p: output of the model
+            y: desired output
     '''
-    l = np.sum(np.dot(y, np.log2(p).T)) / y.shape[0] / val_total_words
+    l = np.sum(y * np.log(p)) / val_total_words
     ppl = np.power(2., -l)
     return ppl
 
@@ -221,7 +224,7 @@ def cross_entropy(o, y):
             cross entropy of this example
     """
     bias = np.power(10., -10)
-    return -np.sum(y * np.log(o + bias))
+    return -np.sum(y * np.log(o))
 
 def softmax(x):
     """
@@ -229,8 +232,8 @@ def softmax(x):
         Output: an array of softmax function of each element
     """
     x_copy = deepcopy(x)
-    x_copy -= np.max(x_copy)
-    return np.exp(x_copy) / np.sum(np.exp(x_copy))
+    x_copy -= x_copy.max(1).reshape(x_copy.shape[0],1)
+    return np.exp(x_copy) / np.sum(np.exp(x_copy), axis=1).reshape(x_copy.shape[0],1)
 
 def tanh(x):
     return np.tanh(x)
@@ -271,7 +274,7 @@ def get_total_words():
 
 def load_data(data_file):
     data_array = np.loadtxt(data_file, dtype='int32')
-    np.random.shuffle(data_array)
+    # np.random.shuffle(data_array)
     row = data_array.shape[0]
     col = data_array.shape[1]
 
