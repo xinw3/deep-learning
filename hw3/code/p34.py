@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # tunable parameters
-epochs = 100
+epochs = 1
 eta = 0.1
 num_dim = 16
 num_hid = 128
@@ -18,12 +18,14 @@ voc_file_name = 'output8000'
 voc_size = 8000
 N = 4   # n-grams
 
-def get_best_weights(epochs):
+def get_best_params(epochs):
     """
         Train the model and get best parameters
         then predict
+        The best parameters are written to files
     """
-
+    weights_file = 'weights.txt'
+    biases_file = 'biases.txt'
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
@@ -169,6 +171,14 @@ def get_best_weights(epochs):
 total epoch=%s, eta=%s, hidden=%s, batch_size=%s \n \
 training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
             % (e + 1, epochs, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
+
+    # write weights and biases to files
+    with open(weights_file, 'w') as f:
+        for key, value in best_weights.items():
+            f.write('%s:%s\n' % (key,value))
+    with open(biases_file, 'w') as f:
+        for key,value in best_biases.items():
+            f.write('%s:%s\n' % (key,value))
 
     return best_weights, best_biases
 
@@ -344,10 +354,9 @@ def predict(weights, biases, three_word, next_num_words):
                 break
         print three_word
 
-
 if __name__ == "__main__":
     # get the best weights from the model
-    best_weights, best_biases = get_best_weights(epochs)
+    best_weights, best_biases = get_best_params(epochs)
     # randomly pick 5 three_word that goes well
     three_words = [['joseph', 'raised', '6,000'], ['they', 'said', 'that'], \
     ['in', 'consequence', 'of'], ['some', 'of', 'the'], ['public', 'overseas', 'complaints']]
@@ -356,4 +365,5 @@ if __name__ == "__main__":
     for three_word in three_words:
         three_word = predict(best_weights, best_biases, three_word, next_num_words)
 
+    print '\nthe next 10 words predicted:'
     print three_words
