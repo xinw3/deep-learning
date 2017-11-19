@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # tunable parameters
-epochs = 1
+epochs = 100
 eta = 0.1
 num_dim = 16
 num_hid = 128
@@ -18,7 +18,11 @@ voc_file_name = 'output8000'
 voc_size = 8000
 N = 4   # n-grams
 
-def p33():
+def get_best_weights(epochs):
+    """
+        Train the model and get best parameters
+        then predict
+    """
 
     ''' Load Data '''
     # process input
@@ -31,6 +35,10 @@ def p33():
 
     weights = {}
     biases = {}
+    best_weights = {}
+    best_biases = {}
+    min_valid_error = sys.maxint
+
     ''' Initialization Parameters '''
     # initializing weights
     weights[0] = init_weights(voc_size, num_dim)    # word_embedding_weights
@@ -152,18 +160,22 @@ def p33():
         training_error_avg = training_error / num_training_example
         valid_error_avg = valid_error / num_valid_example
 
-        # cross entropy error lists
-        training_error_list.append(training_error_avg)
-        valid_error_list.append(valid_error_avg)
-        train_ppl_list.append(train_ppl)
-        val_ppl_list.append(val_ppl)
+        if valid_error_avg < min_valid_error:
+            min_valid_error = valid_error_avg
+            best_weights = deepcopy(weights)
+            best_biases = deepcopy(biases)
 
         print "##### Epoch %s ######\n \
 total epoch=%s, eta=%s, hidden=%s, batch_size=%s \n \
 training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
             % (e + 1, epochs, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
 
-    ''' Visualization '''
+    return best_weights, best_biases
+
+def visualization(training_error_list, valid_error_list, val_ppl_list):
+    '''
+        visualize the train error and valid error
+    '''
     # Cross Entropy
     plt.figure(1)
     plt.xlabel("# epochs")
@@ -258,23 +270,10 @@ def init_weights(n_in, n_out):
     a = np.sqrt(6. / (n_in + n_out))
     return a * np.random.uniform(-1., 1., (n_in, n_out))
 
-def get_total_words():
-    '''
-        streaming through the validation file to get the total word counts
-
-        input: linux pipeline
-        output: word count in the file
-    '''
-    count = 0
-    for line in sys.stdin:
-        words = line.split()
-        count += len(words)
-        count += 2  # add START and END tags to the counts
-
-    return count
-
-
 def load_data(data_file):
+    '''
+        load data from txt file.
+    '''
     data_array = np.loadtxt(data_file, dtype='int32')
     # np.random.shuffle(data_array)
     row = data_array.shape[0]
@@ -288,5 +287,73 @@ def load_data(data_file):
     print x.shape, y.shape
     return x, y
 
+def get_word_mapping(voc_file_name):
+    '''
+        get words and indices mapping.
+        promise to be the same index for every word each time because
+        we create the dict from a file
+
+        return:
+            dictionary: key: word, value: index
+    '''
+    word_dict = dict()
+    index = 0
+    with open(voc_file_name) as f:
+        for line in f:
+            word = line.strip()
+            word_dict[word] = index
+            index += 1
+    return word_dict
+
+def predict(weights, biases, three_word, next_num_words):
+    '''
+        Use left and right pointer to get 3 word each time and predict next word
+        then move the left and right to predict next word
+
+        input:
+            weights, biases: best weights and biases from LM
+            three_word: a list of word
+
+        output:
+            a list of 13 words(3 original + 10 predicted)
+    '''
+    n = N - 1
+    global voc_file_name
+    word_dict = get_word_mapping(voc_file_name)
+
+    print 'predict for %s ...' % (three_word)
+
+    x = np.zeros((1, weights[1].shape[0]))
+    y = np.zeros((1, voc_size))
+    for i in range(next_num_words):
+        left = i
+        # construct x
+        for j in range(n):
+            x[:,j*num_dim : (j+1)*num_dim] = weights[0][word_dict[three_word[left+j]], :]
+
+        ''' Feed Forward '''
+        o1 = feedforward(x, weights[1], biases[1])
+        a1 = tanh(o1)
+
+        o2 = feedforward(a1, weights[2], biases[2])
+        a2 = softmax(o2)
+        predicted_index = np.argmax(a2)
+        for word,index in word_dict.items():
+            if index == predicted_index:
+                three_word.append(word)
+                break
+        print three_word
+
+
 if __name__ == "__main__":
-    p33()
+    # get the best weights from the model
+    best_weights, best_biases = get_best_weights(epochs)
+    # randomly pick 5 three_word that goes well
+    three_words = [['joseph', 'raised', '6,000'], ['they', 'said', 'that'], \
+    ['in', 'consequence', 'of'], ['some', 'of', 'the'], ['public', 'overseas', 'complaints']]
+    next_num_words = 10
+    # predict
+    for three_word in three_words:
+        three_word = predict(best_weights, best_biases, three_word, next_num_words)
+
+    print three_words
