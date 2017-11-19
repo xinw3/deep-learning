@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 
 # tunable parameters
-epochs = 10
+epochs = 1
 eta = 0.1
 num_dim = 16
 num_hid = 128
-batch_size = 256
+batch_size = 512
 
 train_file = 'train_ngram_indices.txt'
 val_file = 'val_ngram_indices.txt'
@@ -159,9 +159,9 @@ def p33():
         val_ppl_list.append(val_ppl)
 
         print "##### Epoch %s ######\n \
-eta=%s, hidden=%s, batch_size=%s \n \
+total epoch=%s, eta=%s, hidden=%s, batch_size=%s \n \
 training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
-            % (e + 1, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
+            % (e + 1, epochs, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
 
     ''' Visualization '''
     # Cross Entropy
@@ -177,8 +177,10 @@ training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
     plt.figure(2)
     plt.xlabel("# epochs")
     plt.ylabel("perplexity")
-    plt.plot(train_ppl_list, label='training perplexity')
+    # plt.plot(train_ppl_list, label='training perplexity')
     plt.plot(val_ppl_list, label='validation perplexity')
+    plt.title('Val Perplexity\n (learning_rate=%s, hidden=%s)'\
+            % (eta, num_hid))
 
     plt.show()
 
