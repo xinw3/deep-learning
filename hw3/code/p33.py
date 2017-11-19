@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 epochs = 1
 eta = 0.1
 num_dim = 16
-num_hid = 128
+num_hid = 256
 batch_size = 512
 
 train_file = 'train_ngram_indices.txt'

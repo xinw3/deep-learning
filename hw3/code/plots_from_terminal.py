@@ -20,7 +20,7 @@ def mapper():
     train_error_list = []
     val_error_list = []
     val_ppl_list = []
-    eta = 0.01
+    eta = 0.1
     num_hid = 128
 
     for line in sys.stdin:

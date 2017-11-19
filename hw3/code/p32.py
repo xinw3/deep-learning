@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # tunable parameters
 epochs = 100
-eta = 0.01
+eta = 0.1
 num_dim = 16
 num_hid = 128
 batch_size = 512
@@ -177,7 +177,7 @@ training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
     plt.figure(2)
     plt.xlabel("# epochs")
     plt.ylabel("perplexity")
-    plt.plot(train_ppl_list, label='training perplexity')
+    # plt.plot(train_ppl_list, label='training perplexity')
     plt.plot(val_ppl_list, label='validation perplexity')
 
     plt.show()
