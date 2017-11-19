@@ -4,30 +4,32 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import pickle
 
-
 # tunable parameters
-epochs = 1
+epochs = 100
 eta = 0.1
 num_dim = 16
 num_hid = 128
 batch_size = 512
 
-train_file = 'train_ngram_indices.txt'
-val_file = 'val_ngram_indices.txt'
-
 voc_file_name = 'output8000'
 voc_size = 8000
 N = 4   # n-grams
 
+train_file = 'train_ngram_indices.txt'
+val_file = 'val_ngram_indices.txt'
+
+# where best params stored
+weights_file = 'weights.pickle'
+biases_file = 'biases.pickle'
+
 def get_best_params(epochs):
     """
         Train the model and get best parameters
-        then predict
         The best parameters are written to files
     """
-    weights_file = 'weights.pickle'
-    biases_file = 'biases.pickle'
+
     ''' Load Data '''
+    print 'training to get the best params...'
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
     x_valid, y_valid = load_data(val_file)    # (10031, 3), (10031, 1)
@@ -174,18 +176,11 @@ training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
             % (e + 1, epochs, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
 
     # write weights and biases to files
+    print 'writing parameters...'
     with open(weights_file, 'wb') as f:
         pickle.dump(best_weights, f, protocol=pickle.HIGHEST_PROTOCOL)
     with open(biases_file, 'wb') as f:
         pickle.dump(best_biases, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-    # test pickle
-    with open(weights_file, 'rb') as f:
-        loaded_weights = pickle.load(f)
-
-    print "Test Pickle: "
-    for key in best_weights.keys():
-        print loaded_weights[key].all() == best_weights[key].all()
 
     return best_weights, best_biases
 
@@ -361,9 +356,35 @@ def predict(weights, biases, three_word, next_num_words):
                 break
         print three_word
 
+def get_distance(word_dict, embedding_weights, word_a, word_b):
+    '''
+        input:
+                word_dict: store word index mapping
+        embedding_weights: word vector (V*D)
+                   word_a: word String
+                   word_b: word String
+        output: the Euclidean distance between the two words
+    '''
+    index_a = word_dict[word_a]
+    index_b = word_dict[word_b]
+
+    vec_a = embedding_weights[index_a]
+    vec_b = embedding_weights[index_b]
+
+    dist = np.linalg.norm(vec_a - vec_b)
+    return dist
+
 if __name__ == "__main__":
-    # get the best weights from the model
+    best_weights = {}
+    best_biases = {}
+    # NOTE:get the best weights from the model(if params not stored)
     best_weights, best_biases = get_best_params(epochs)
+    # load weights from files if stored
+    with open(weights_file, 'rb') as f:
+        best_weights = pickle.load(f)
+
+    with open(biases_file, 'rb') as f:
+        best_biases = pickle.load(f)
     # randomly pick 5 three_word that goes well
     three_words = [['joseph', 'raised', '6,000'], ['they', 'said', 'that'], \
     ['in', 'consequence', 'of'], ['some', 'of', 'the'], ['public', 'overseas', 'complaints']]
@@ -374,3 +395,16 @@ if __name__ == "__main__":
 
     print '\nthe next 10 words predicted:'
     print three_words
+
+    word_dict = get_word_mapping(voc_file_name)
+    similar_words = [['monday', 'tuesday'],['man', 'woman'],['million', 'billion']]
+    unsimilar_words = [['wolf', 'greatly'], ['document', 'foam'], ['ounces', 'early']]
+    print 'similar words distance: '
+    for words in similar_words:
+        dist = get_distance(word_dict, best_weights[0], words[0], words[1])
+        print dist
+
+    print 'unsimilar words distance:'
+    for words in unsimilar_words:
+        dist = get_distance(word_dict, best_weights[0], words[0], words[1])
+        print dist
