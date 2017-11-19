@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
+import pickle
 
 
 # tunable parameters
@@ -24,8 +25,8 @@ def get_best_params(epochs):
         then predict
         The best parameters are written to files
     """
-    weights_file = 'weights.txt'
-    biases_file = 'biases.txt'
+    weights_file = 'weights.pickle'
+    biases_file = 'biases.pickle'
     ''' Load Data '''
     # process input
     x_train, y_train = load_data(train_file)    # (81180, 3), (81180, 1)
@@ -173,12 +174,18 @@ training_error = %s, valid_error = %s, val_ppl=%s, train_ppl=%s\n" \
             % (e + 1, epochs, eta, num_hid, batch_size, training_error_avg, valid_error_avg, val_ppl, train_ppl)
 
     # write weights and biases to files
-    with open(weights_file, 'w') as f:
-        for key, value in best_weights.items():
-            f.write('%s:%s\n' % (key,value))
-    with open(biases_file, 'w') as f:
-        for key,value in best_biases.items():
-            f.write('%s:%s\n' % (key,value))
+    with open(weights_file, 'wb') as f:
+        pickle.dump(best_weights, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(biases_file, 'wb') as f:
+        pickle.dump(best_biases, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # test pickle
+    with open(weights_file, 'rb') as f:
+        loaded_weights = pickle.load(f)
+
+    print "Test Pickle: "
+    for key in best_weights.keys():
+        print loaded_weights[key].all() == best_weights[key].all()
 
     return best_weights, best_biases
 
