@@ -1,0 +1,53 @@
+# configure a virtual machine for running the code
+gcloud init
+gsutil cp -r gs://10707/hw3 .
+sudo apt-get install python-pip python-dev build-essential
+sudo pip install --upgrade pip
+sudo pip install --upgrade virtualenv
+sudo python -mpip install -U matplotlib
+sudo apt-get install python-tk
+sudo pip install numpy
+
+########## DATA PREPROCESSING ##########
+# NOTE: I have included all the generated data in the compressed folder.
+# run map reduce preprocess the data and get the top 8000 words vocabulary
+cat ../train.txt | python pre_mapper.py > output8000
+
+# generate n-grams for training set
+cat ../train.txt | python ngram_mapper.py | sort | python ngram_reducer.py | sort -rn -t $'\t' -k2 > train_ngram_count.txt
+
+# generate n-grams for validation set
+cat ../val.txt | python ngram_mapper.py | sort | python ngram_reducer.py | sort -rn -t $'\t' -k2 > val_ngram_count.txt
+
+# get the ngram that has duplicates and send to train
+cat ../train.txt | python ngram_dup.py > train_ngram_dup.txt
+cat ../val.txt | python ngram_dup.py > val_ngram_dup.txt
+
+# plot the ngram
+python plot_ngram.py
+
+# convert n-gram to word indices in the dictionary
+cat train_ngram_dup.txt | python process_ngram.py > train_ngram_indices.txt
+cat val_ngram_dup.txt | python process_ngram.py > val_ngram_indices.txt
+
+
+######### Below is the commands for answering questions in write-up #########
+
+# train the language model
+## linear (directly change parameters inside of the file)
+python p32.py
+
+## tanh (directly change parameters inside of the file)
+python p33.py
+
+# draw plots from the output of the terminal in the case that running
+# on some virtual machine and cannot display plots directly
+cat p32_lr01_h128.txt | python plots_from_terminal.py
+
+# problem 3.4
+# Note that if it's the first time to run p34.py, which means the params haven't
+# been written to the files, comment out the 'NOTE' part in main to get the best
+# parameters first. Because I have already written the parameters into 'weights.pickle'
+# and 'biases.pickle' so it's ok for you to just run the code
+
+python p34.py
