@@ -3,11 +3,12 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import pickle
+import random
 
 # tunable parameters
-epochs = 100
+epochs = 1
 eta = 0.1
-num_dim = 16
+num_dim = 2
 num_hid = 128
 batch_size = 512
 
@@ -19,8 +20,8 @@ train_file = 'train_ngram_indices.txt'
 val_file = 'val_ngram_indices.txt'
 
 # where best params stored
-weights_file = 'weights.pickle'
-biases_file = 'biases.pickle'
+weights_file = 'weights_p35.pickle'
+biases_file = 'biases_p35.pickle'
 
 def get_best_params(epochs):
     """
@@ -385,20 +386,10 @@ if __name__ == "__main__":
 
     with open(biases_file, 'rb') as f:
         best_biases = pickle.load(f)
-    # randomly pick 5 three_word that goes well
-    three_words = [['joseph', 'raised', '6,000'], ['they', 'said', 'that'], \
-    ['in', 'consequence', 'of'], ['some', 'of', 'the'], ['public', 'overseas', 'complaints']]
-    next_num_words = 10
-    # predict
-    for three_word in three_words:
-        three_word = predict(best_weights, best_biases, three_word, next_num_words)
-
-    print '\nthe next 10 words predicted:'
-    print three_words
 
     word_dict = get_word_mapping(voc_file_name)
     similar_words = [['monday', 'tuesday'],['man', 'woman'],['8.50', '8.53']]
-    unsimilar_words = [['wednesday', 'lord'], ['second', 'foam'], ['ounces', 'early']]
+    unsimilar_words = [['wolf', 'greatly'], ['document', 'foam'], ['ounces', 'early']]
     print 'similar words distance: '
     for words in similar_words:
         dist = get_distance(word_dict, best_weights[0], words[0], words[1])
@@ -408,3 +399,25 @@ if __name__ == "__main__":
     for words in unsimilar_words:
         dist = get_distance(word_dict, best_weights[0], words[0], words[1])
         print dist
+    # randomly get 500 indices
+    indices500 = random.sample(range(1, 8000), 500)
+    similar_words_indices = []
+    for words in similar_words:
+        index0 = word_dict[words[0]]
+        index1 = word_dict[words[1]]
+        indices_list = [index0,index1]
+
+        indices500.append(index0)
+        indices500.append(index1)
+        similar_words_indices.append(indices_list)
+
+    print similar_words_indices
+
+    ''' Visualize Weights V * D (8000 * 2)'''
+    x = best_weights[0][:,0]
+    y = best_weights[0][:,1]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.scatter(x,y)
+    plt.show()
