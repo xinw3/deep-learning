@@ -414,10 +414,18 @@ if __name__ == "__main__":
     print similar_words_indices
 
     ''' Visualize Weights V * D (8000 * 2)'''
+    markers = [u'+', u'x', u'x']
+    colors = ['r', 'g', 'orange']
     x = best_weights[0][:,0]
     y = best_weights[0][:,1]
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.scatter(x,y)
+    ax.scatter(x,y,c='k')
+    count = 0
+    for indices in similar_words_indices:
+        similar_x = best_weights[0][[indices[0], indices[1]],0]
+        similar_y = best_weights[0][[indices[0], indices[1]],1]
+        ax.scatter(similar_x, similar_y, marker=markers[count], c=colors[count])
+        count += 1
     plt.show()
